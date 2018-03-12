@@ -314,6 +314,7 @@ class Make
 
     /**
      * Returns xml string and assembly it is necessary
+
      * @return string
      */
     public function getXML()
@@ -326,6 +327,7 @@ class Make
 
     /**
      * Retorns the key number of NFe (44 digits)
+
      * @return string
      */
     public function getChave()
@@ -335,6 +337,7 @@ class Make
 
     /**
      * Returns the model of NFe 55 or 65
+
      * @return int
      */
     public function getModelo()
@@ -344,6 +347,7 @@ class Make
 
     /**
      * Call method of xml assembly. For compatibility only.
+
      * @return boolean
      */
     public function montaNFe()
@@ -353,9 +357,10 @@ class Make
 
     /**
      * NFe xml mount method
-     * this function returns TRUE on success or FALSE on error
-     * The xml of the NFe must be retrieved by the getXML() function or
+      * this function returns TRUE on success or FALSE on error
+      * The xml of the NFe must be retrieved by the getXML() function or
      * directly by the public property $xml
+
      * @return boolean
      */
     public function monta()
@@ -421,6 +426,7 @@ class Make
     /**
      * Informações da NF-e A01 pai NFe
      * tag NFe/infNFe
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -448,6 +454,7 @@ class Make
      * Informações de identificação da NF-e B01 pai A01
      * NOTA: Ajustado para NT2016_002_v1.30
      * tag NFe/infNFe/ide
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -588,7 +595,7 @@ class Make
         $this->dom->addChild(
             $ide,
             "cDV",
-            $std->cDV,
+            !empty($std->cDV) ? $std->cDV : '0',
             true,
             $identificador . "Dígito Verificador da Chave de Acesso da NF-e"
         );
@@ -657,6 +664,7 @@ class Make
     /**
      * Chave de acesso da NF-e referenciada BA02 pai BA01
      * tag NFe/infNFe/ide/NFref/refNFe
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -674,6 +682,7 @@ class Make
     /**
      * Informação da NF modelo 1/1A referenciada BA03 pai BA01
      * tag NFe/infNFe/ide/NFref/NF DOMNode
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -734,6 +743,7 @@ class Make
     /**
      * Informações da NF de produtor rural referenciada BA10 pai BA01
      * tag NFe/infNFe/ide/NFref/refNFP
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -817,6 +827,7 @@ class Make
     /**
      * Chave de acesso do CT-e referenciada BA19 pai BA01
      * tag NFe/infNFe/ide/NFref/refCTe
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -834,7 +845,8 @@ class Make
     /**
      * Informações do Cupom Fiscal referenciado BA20 pai BA01
      * tag NFe/infNFe/ide/NFref/refECF
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagrefECF(stdClass $std)
@@ -873,6 +885,7 @@ class Make
     /**
      * Identificação do emitente da NF-e C01 pai A01
      * tag NFe/infNFe/emit
+
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -962,7 +975,8 @@ class Make
     /**
      * Endereço do emitente C05 pai C01
      * tag NFe/infNFe/emit/endEmit
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagenderEmit(stdClass $std)
@@ -1069,7 +1083,8 @@ class Make
     /**
      * Identificação do Destinatário da NF-e E01 pai A01
      * tag NFe/infNFe/dest (opcional para modelo 65)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagdest(stdClass $std)
@@ -1105,28 +1120,31 @@ class Make
             $xNome = 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
             //a exigência do CNPJ 99999999000191 não existe mais
         }
-        $this->dom->addChild(
-            $this->dest,
-            "CNPJ",
-            Strings::onlyNumbers($std->CNPJ),
-            false,
-            $identificador . "CNPJ do destinatário"
-        );
-        $this->dom->addChild(
-            $this->dest,
-            "CPF",
-            Strings::onlyNumbers($std->CPF),
-            false,
-            $identificador . "CPF do destinatário"
-        );
-        $this->dom->addChild(
-            $this->dest,
-            "idEstrangeiro",
-            Strings::onlyNumbers($std->idEstrangeiro),
-            false,
-            $identificador . "Identificação do destinatário no caso de comprador estrangeiro"
-        );
-        if ($std->idEstrangeiro != '') {
+        if (!empty($std->CNPJ)) {
+            $this->dom->addChild(
+                $this->dest,
+                "CNPJ",
+                Strings::onlyNumbers($std->CNPJ),
+                true,
+                $identificador . "CNPJ do destinatário"
+            );
+        } elseif (!empty($std->CPF)) {
+            $this->dom->addChild(
+                $this->dest,
+                "CPF",
+                Strings::onlyNumbers($std->CPF),
+                true,
+                $identificador . "CPF do destinatário"
+            );
+        } else {
+            $this->dom->addChild(
+                $this->dest,
+                "idEstrangeiro",
+                $std->idEstrangeiro,
+                true,
+                $identificador . "Identificação do destinatário no caso de comprador estrangeiro",
+                true
+            );
             $std->indIEDest = '9';
         }
         $this->dom->addChild(
@@ -1180,7 +1198,8 @@ class Make
      * Endereço do Destinatário da NF-e E05 pai E01
      * tag NFe/infNFe/dest/enderDest  (opcional para modelo 65)
      * Os dados do destinatário devem ser inseridos antes deste método
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagenderDest(stdClass $std)
@@ -1293,7 +1312,8 @@ class Make
     /**
      * Identificação do Local de retirada F01 pai A01
      * tag NFe/infNFe/retirada (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagretirada(stdClass $std)
@@ -1382,7 +1402,8 @@ class Make
     /**
      * Identificação do Local de entrega G01 pai A01
      * tag NFe/infNFe/entrega (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagentrega(stdClass $std)
@@ -1471,7 +1492,8 @@ class Make
     /**
      * Pessoas autorizadas para o download do XML da NF-e G50 pai A01
      * tag NFe/infNFe/autXML
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagautXML(stdClass $std)
@@ -1504,7 +1526,8 @@ class Make
     /**
      * Informações adicionais do produto V01 pai H01
      * tag NFe/infNFe/det[]/infAdProd
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function taginfAdProd(stdClass $std)
@@ -1524,7 +1547,8 @@ class Make
      * Detalhamento de Produtos e Serviços I01 pai H01
      * tag NFe/infNFe/det[]/prod
      * NOTA: Ajustado para NT2016_002_v1.30
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagprod(stdClass $std)
@@ -1566,11 +1590,6 @@ class Make
 
         $cean = !empty($std->cEAN) ? $std->cEAN : '';
         $ceantrib = !empty($std->cEANTrib) ? $std->cEANTrib : '';
-        if ($this->version !== '3.10') {
-            $cean = !empty($cean) ? $cean : 'SEM GTIN';
-            $ceantrib = !empty($ceantrib) ? $ceantrib : 'SEM GTIN';
-        }
-
         $identificador = 'I01 <prod> - ';
         $prod = $this->dom->createElement("prod");
         $this->dom->addChild(
@@ -1639,21 +1658,21 @@ class Make
         $this->dom->addChild(
             $prod,
             "qCom",
-            $std->qCom,
+            number_format($std->qCom, 4, '.', ''),
             true,
             $identificador . "[item $std->item] Quantidade Comercial do produto"
         );
         $this->dom->addChild(
             $prod,
             "vUnCom",
-            $std->vUnCom,
+            number_format($std->vUnCom, 10, '.', ''),
             true,
             $identificador . "[item $std->item] Valor Unitário de Comercialização do produto"
         );
         $this->dom->addChild(
             $prod,
             "vProd",
-            $std->vProd,
+            number_format($std->vProd, 2, '.', ''),
             true,
             $identificador . "[item $std->item] Valor Total Bruto dos Produtos ou Serviços"
         );
@@ -1676,42 +1695,42 @@ class Make
         $this->dom->addChild(
             $prod,
             "qTrib",
-            $std->qTrib,
+            number_format($std->qTrib, 4, '.', ''),
             true,
             $identificador . "[item $std->item] Quantidade Tributável do produto"
         );
         $this->dom->addChild(
             $prod,
             "vUnTrib",
-            $std->vUnTrib,
+            number_format($std->vUnTrib, 10, '.', ''),
             true,
             $identificador . "[item $std->item] Valor Unitário de tributação do produto"
         );
         $this->dom->addChild(
             $prod,
             "vFrete",
-            $std->vFrete,
+            ((float) $std->vFrete == 0 ? '' : number_format($std->vFrete, 2, '.', '')),
             false,
             $identificador . "[item $std->item] Valor Total do Frete"
         );
         $this->dom->addChild(
             $prod,
             "vSeg",
-            $std->vSeg,
+            ((float) $std->vSeg == 0 ? '' : number_format($std->vSeg, 2, '.', '')),
             false,
             $identificador . "[item $std->item] Valor Total do Seguro"
         );
         $this->dom->addChild(
             $prod,
             "vDesc",
-            $std->vDesc,
+            ((float) $std->vDesc == 0 ? '' : number_format($std->vDesc, 2, '.', '')),
             false,
             $identificador . "[item $std->item] Valor do Desconto"
         );
         $this->dom->addChild(
             $prod,
             "vOutro",
-            $std->vOutro,
+            ((float) $std->vOutro == 0 ? '' : number_format($std->vOutro, 2, '.', '')),
             false,
             $identificador . "[item $std->item] Outras despesas acessórias"
         );
@@ -1776,6 +1795,7 @@ class Make
      * vide NT2015.003  I05C pai
      * tag NFe/infNFe/det[item]/prod/CEST (opcional)
      * NOTA: Ajustado para NT2016_002_v1.30
+     *
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -1816,6 +1836,7 @@ class Make
 
     /**
      * tag NFe/infNFe/det[item]/prod/nRECOPI
+     *
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -1832,7 +1853,8 @@ class Make
     /**
      * Declaração de Importação I8 pai I01
      * tag NFe/infNFe/det[]/prod/DI
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagDI(stdClass $std)
@@ -1901,7 +1923,7 @@ class Make
         $this->dom->addChild(
             $tDI,
             "vAFRMM",
-            $std->vAFRMM,
+            number_format($std->vAFRMM, 2, '.', ''),
             false,
             $identificador . "[item $std->item] Valor da AFRMM "
             . "- Adicional ao Frete para Renovação da Marinha Mercante"
@@ -1941,7 +1963,8 @@ class Make
     /**
      * Adições I25 pai I18
      * tag NFe/infNFe/det[]/prod/DI/adi
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagadi(stdClass $std)
@@ -1983,7 +2006,7 @@ class Make
         $this->dom->addChild(
             $adi,
             "vDescDI",
-            $std->vDescDI,
+            ($std->vDescDI == 0 ? '' : number_format($std->vDescDI, 2, '.', '')),
             false,
             $identificador . "[item $std->item] Valor do desconto do item da DI Adição"
         );
@@ -2005,7 +2028,8 @@ class Make
     /**
      * Grupo de informações de exportação para o item I50 pai I01
      * tag NFe/infNFe/det[]/prod/detExport
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagdetExport(stdClass $std)
@@ -2033,7 +2057,8 @@ class Make
     /**
      * Grupo de informações de exportação para o item I52 pai I52
      * tag NFe/infNFe/det[]/prod/detExport
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagdetExportInd(stdClass $std)
@@ -2066,7 +2091,7 @@ class Make
         $this->dom->addChild(
             $exportInd,
             "qExport",
-            $std->qExport,
+            number_format($std->qExport, 4, '.', ''),
             true,
             $identificador . "[item $std->item] Quantidade do item realmente exportado"
         );
@@ -2082,7 +2107,8 @@ class Make
      * Rastreabilidade do produto podem ser até 500 por item TAG I80 pai I01
      * NOTA: Ajustado para NT2016_002_v1.00
      * tag NFe/infNFe/det[]/prod/rastro
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagRastro(stdClass $std)
@@ -2141,7 +2167,8 @@ class Make
     /**
      * Detalhamento de Veículos novos J01 pai I90
      * tag NFe/infNFe/det[]/prod/veicProd (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagveicProd(stdClass $std)
@@ -2353,7 +2380,8 @@ class Make
      * Detalhamento de medicamentos K01 pai I90
      * NOTA: Ajustado para NT2016_002_v1.00
      * tag NFe/infNFe/det[]/prod/med (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagmed(stdClass $std)
@@ -2391,7 +2419,7 @@ class Make
         $this->dom->addChild(
             $med,
             "qLote",
-            $std->qLote,
+            number_format($std->qLote, 3, '.', ''),
             false,
             "$identificador [item $std->item] Quantidade de produto no Lote de medicamentos "
             . "ou de matérias-primas farmacêuticas"
@@ -2426,7 +2454,8 @@ class Make
     /**
      * Detalhamento de armas L01 pai I90
      * tag NFe/infNFe/det[]/prod/arma (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagarma(stdClass $std)
@@ -2484,7 +2513,8 @@ class Make
      *
      * NOTA: Ajustado para NT2016_002_v1.30
      * LA|cProdANP|descANP|pGLP|pGNn|pGNi|vPart|CODIF|qTemp|UFCons|
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagcomb(stdClass $std)
@@ -2520,7 +2550,7 @@ class Make
         $this->dom->addChild(
             $comb,
             "pMixGN",
-            $std->pMixGN,
+            number_format($std->pMixGN, 4, '.', ''),
             false,
             "$identificador [item $std->item] Percentual de Gás Natural para o produto GLP (cProdANP=210203001)"
         );
@@ -2538,7 +2568,7 @@ class Make
         $this->dom->addChild(
             $comb,
             "pGLP",
-            $std->pGLP,
+            number_format($std->pGLP, 4, '.', ''),
             false,
             "$identificador [item $std->item] Percentual do GLP derivado do "
             . "petróleo no produto GLP (cProdANP=210203001) 1v4"
@@ -2547,7 +2577,7 @@ class Make
         $this->dom->addChild(
             $comb,
             "pGNn",
-            $std->pGNn,
+            number_format($std->pGNn, 4, '.', ''),
             false,
             "$identificador [item $std->item] Percentual de Gás Natural Nacional"
             . " – GLGNn para o produto GLP (cProdANP=210203001) 1v4"
@@ -2556,7 +2586,7 @@ class Make
         $this->dom->addChild(
             $comb,
             "pGNi",
-            $std->pGNi,
+            number_format($std->pGNi, 4, '.', ''),
             false,
             "$identificador [item $std->item] Percentual de Gás Natural Importado"
             . " – GLGNi para o produto GLP (cProdANP=210203001) 1v4"
@@ -2566,7 +2596,7 @@ class Make
         $this->dom->addChild(
             $comb,
             "vPart",
-            $std->vPart,
+            number_format($std->vPart, 2, '.', ''),
             false,
             "$identificador [item $std->item] Valor de partida (cProdANP=210203001) "
         );
@@ -2580,7 +2610,7 @@ class Make
         $this->dom->addChild(
             $comb,
             "qTemp",
-            $std->qTemp,
+            number_format($std->qTemp, 4, '.', ''),
             false,
             "$identificador [item $std->item] Quantidade de combustível faturada à temperatura ambiente."
         );
@@ -2603,14 +2633,14 @@ class Make
             $this->dom->addChild(
                 $tagCIDE,
                 "vAliqProd",
-                $std->vAliqProd,
+                number_format($std->vAliqProd, 2, '.', ''),
                 true,
                 "$identificador [item $std->item] Valor da alíquota da CIDE"
             );
             $this->dom->addChild(
                 $tagCIDE,
                 "vCIDE",
-                $std->vCIDE,
+                number_format($std->vCIDE, 2, '.', ''),
                 true,
                 "$identificador [item $std->item] Valor da CIDE"
             );
@@ -2625,7 +2655,8 @@ class Make
      * encerrante que permite o controle sobre as operações de venda de combustíveis
      * LA11 pai LA01
      * tag NFe/infNFe/det[]/prod/comb/encerrante (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagencerrante(stdClass $std)
@@ -2666,14 +2697,14 @@ class Make
         $this->dom->addChild(
             $encerrante,
             "vEncIni",
-            $std->vEncIni,
+            number_format($std->vEncIni, 3, '.', ''),
             true,
             "$identificador [item $std->item] Valor do Encerrante no início do abastecimento"
         );
         $this->dom->addChild(
             $encerrante,
             "vEncFin",
-            $std->vEncFin,
+            number_format($std->vEncFin, 2, '.', ''),
             true,
             "$identificador [item $std->item] Valor do Encerrante no final do abastecimento"
         );
@@ -2684,7 +2715,8 @@ class Make
     /**
      * Impostos com o valor total tributado M01 pai H01
      * tag NFe/infNFe/det[]/imposto
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagimposto(stdClass $std)
@@ -2700,7 +2732,7 @@ class Make
         $this->dom->addChild(
             $imposto,
             "vTotTrib",
-            $std->vTotTrib,
+            ((float) $std->vTotTrib == 0 ? '' : number_format($std->vTotTrib, 2, '.', '')),
             false,
             "$identificador [item $std->item] Valor aproximado total de tributos federais, estaduais e municipais."
         );
@@ -2711,7 +2743,8 @@ class Make
     /**
      * Informações do ICMS da Operação própria e ST N01 pai M01
      * tag NFe/infNFe/det[]/imposto/ICMS
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagICMS(stdClass $std)
@@ -2757,6 +2790,10 @@ class Make
         $this->stdTot->vBCST += (float) !empty($std->vBCST) ? $std->vBCST : 0;
         $this->stdTot->vST += (float) !empty($std->vICMSST) ? $std->vICMSST : 0;
 
+        $this->stdTot->vFCP += (float) !empty($std->vFCP) ? $std->vFCP : 0;
+        $this->stdTot->vFCPST += (float) !empty($std->vFCPST) ? $std->vFCPST : 0;
+        $this->stdTot->vFCPSTRet += (float) !empty($std->vFCPSTRet) ? $std->vFCPSTRet : 0;
+
         $identificador = 'N01 <ICMSxx> - ';
         switch ($std->CST) {
             case '00':
@@ -2768,57 +2805,59 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 00"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBC',
-                    $std->modBC,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBC',
-                    $std->vBC,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMS',
-                    $std->pICMS,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMS',
-                    $std->vICMS,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCP',
-                    $std->pFCP,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 00"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBC',
+                        $std->modBC,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS"
+                    );
+                if ($this->version !== '3.10') {
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCP',
+                        ((float) $std->pFCP == 0 ? '' : number_format($std->pFCP, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP)"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCP',
-                    $std->vFCP,
-                    false,
-                    "$identificador [item $std->item] Valor do Fundo de Combate "
-                        . "à Pobreza (FCP)"
-                );
+                    );
+                        $this->dom->addChild(
+                            $icms,
+                            'vFCP',
+                            number_format($std->vFCP, 2, '.', ''),
+                            true,
+                            "$identificador [item $std->item] Valor do Fundo de Combate "
+                            . "à Pobreza (FCP)"
+                        );
+                }
                 break;
             case '10':
                 $icms = $this->dom->createElement("ICMS10");
@@ -2829,127 +2868,129 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 10"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBC',
-                    $std->modBC,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBC',
-                    $std->vBC,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMS',
-                    $std->pICMS,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMS',
-                    $std->vICMS,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCP',
-                    $std->vBCFCP,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCP',
-                    $std->pFCP,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
-                        . "Combate à Pobreza (FCP)"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCP',
-                    $std->vFCP,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBCST',
-                    $std->modBCST,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCST',
-                    $std->vBCST,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMSST',
-                    $std->pICMSST,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSST',
-                    $std->vICMSST,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
-                        . "Combate à Pobreza (FCP) ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP ST"
-                );
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 10"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBC',
+                        $std->modBC,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS"
+                    );
+                if ($this->version !== '3.10') {
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCP',
+                        number_format($std->vBCFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
+                    );
+                        $this->dom->addChild(
+                            $icms,
+                            'pFCP',
+                            number_format($std->pFCP, 4, '.', ''),
+                            false,
+                            "$identificador [item $std->item] Percentual do Fundo de "
+                            . "Combate à Pobreza (FCP)"
+                        );
+                        $this->dom->addChild(
+                            $icms,
+                            'vFCP',
+                            number_format($std->vFCP, 2, '.', ''),
+                            false,
+                            "$identificador [item $std->item] Valor do FCP"
+                        );
+                        $this->dom->addChild(
+                            $icms,
+                            'vBCFCPST',
+                            number_format($std->vBCFCPST, 2, '.', ''),
+                            false,
+                            "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
+                        );
+                        $this->dom->addChild(
+                            $icms,
+                            'pFCPST',
+                            number_format($std->pFCPST, 4, '.', ''),
+                            false,
+                            "$identificador [item $std->item] Percentual do Fundo de "
+                            . "Combate à Pobreza (FCP) ST"
+                        );
+                        $this->dom->addChild(
+                            $icms,
+                            'vFCPST',
+                            number_format($std->vFCPST, 2, '.', ''),
+                            false,
+                            "$identificador [item $std->item] Valor do FCP ST"
+                        );
+                }
+                    $this->dom->addChild(
+                        $icms,
+                        'modBCST',
+                        $std->modBCST,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pMVAST',
+                        ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS ST"
+                    );
                 break;
             case '20':
                 $icms = $this->dom->createElement("ICMS20");
@@ -2960,84 +3001,84 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 20"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBC',
-                    $std->modBC,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBC',
-                    $std->pRedBC,
-                    true,
-                    "$identificador [item $std->item] Percentual da Redução de BC"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBC',
-                    $std->vBC,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMS',
-                    $std->pICMS,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMS',
-                    $std->vICMS,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCP',
-                    $std->vBCFCP,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCP',
-                    $std->pFCP,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 20"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBC',
+                        $std->modBC,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBC',
+                        ((float) $std->pRedBC == 0 ? '' : number_format($std->pRedBC, 4, '.', '')),
+                        true,
+                        "$identificador [item $std->item] Percentual da Redução de BC"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCP',
+                        number_format($std->vBCFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCP',
+                        number_format($std->pFCP, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP)"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCP',
-                    $std->vFCP,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSDeson',
-                    $std->vICMSDeson,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS desonerado"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'motDesICMS',
-                    $std->motDesICMS,
-                    false,
-                    "$identificador [item $std->item] Motivo da desoneração do ICMS"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCP',
+                        number_format($std->vFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSDeson',
+                        ((float) $std->vICMSDeson == 0 ? '' : number_format($std->vICMSDeson, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS desonerado"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'motDesICMS',
+                        $std->motDesICMS,
+                        false,
+                        "$identificador [item $std->item] Motivo da desoneração do ICMS"
+                    );
                 break;
             case '30':
                 $icms = $this->dom->createElement("ICMS30");
@@ -3048,91 +3089,91 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 30"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBCST',
-                    $std->modBCST,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCST',
-                    $std->vBCST,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMSST',
-                    $std->pICMSST,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSST',
-                    $std->vICMSST,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 30"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBCST',
+                        $std->modBCST,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pMVAST',
+                        ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCPST',
+                        number_format($std->vBCFCPST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCPST',
+                        number_format($std->pFCPST, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP) ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSDeson',
-                    $std->vICMSDeson,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS desonerado"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'motDesICMS',
-                    $std->motDesICMS,
-                    false,
-                    "$identificador [item $std->item] Motivo da desoneração do ICMS"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCPST',
+                        number_format($std->vFCPST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSDeson',
+                        ((float) $std->vICMSDeson == 0 ? '' : number_format($std->vICMSDeson, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS desonerado"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'motDesICMS',
+                        $std->motDesICMS,
+                        false,
+                        "$identificador [item $std->item] Motivo da desoneração do ICMS"
+                    );
                 break;
             case '40':
             case '41':
@@ -3145,27 +3186,27 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS $std->CST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSDeson',
-                    $std->vICMSDeson,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS desonerado"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'motDesICMS',
-                    $std->motDesICMS,
-                    false,
-                    "$identificador [item $std->item] Motivo da desoneração do ICMS"
-                );
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS $std->CST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSDeson',
+                        ((float) $std->vICMSDeson == 0 ? '' : number_format($std->vICMSDeson, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS desonerado"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'motDesICMS',
+                        $std->motDesICMS,
+                        false,
+                        "$identificador [item $std->item] Motivo da desoneração do ICMS"
+                    );
                 break;
             case '51':
                 $icms = $this->dom->createElement("ICMS51");
@@ -3176,91 +3217,91 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 51"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBC',
-                    $std->modBC,
-                    false,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBC',
-                    $std->pRedBC,
-                    false,
-                    "$identificador [item $std->item] Percentual da Redução de BC"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBC',
-                    $std->vBC,
-                    false,
-                    "$identificador [item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMS',
-                    $std->pICMS,
-                    false,
-                    "$identificador [item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSOp',
-                    $std->vICMSOp,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS da Operação"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pDif',
-                    $std->pDif,
-                    false,
-                    "$identificador [item $std->item] Percentual do diferimento"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSDif',
-                    $std->vICMSDif,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS diferido"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMS',
-                    $std->vICMS,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS realmente devido"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCP',
-                    $std->vBCFCP,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCP',
-                    $std->pFCP,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 51"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBC',
+                        $std->modBC,
+                        false,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBC',
+                        ((float) $std->pRedBC == 0 ? '' : number_format($std->pRedBC, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da Redução de BC"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSOp',
+                        number_format($std->vICMSOp, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS da Operação"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pDif',
+                        number_format($std->pDif, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do diferimento"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSDif',
+                        number_format($std->vICMSDif, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS diferido"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS realmente devido"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCP',
+                        number_format($std->vBCFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCP',
+                        number_format($std->pFCP, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP)"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCP',
-                    $std->vFCP,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCP',
+                        number_format($std->vFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP"
+                    );
                 break;
             case '60':
                 $icms = $this->dom->createElement("ICMS60");
@@ -3271,58 +3312,58 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 60"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCSTRet',
-                    $std->vBCSTRet,
-                    false,
-                    "$identificador [item $std->item] Valor da BC do ICMS ST retido"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pST',
-                    $std->pST,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS ST retido"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSSTRet',
-                    $std->vICMSSTRet,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS ST retido"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCPSTRet',
-                    $std->vBCFCPSTRet,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 60"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCSTRet',
+                        number_format($std->vBCSTRet, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da BC do ICMS ST retido"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pST',
+                        number_format($std->pST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS ST retido"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSSTRet',
+                        number_format($std->vICMSSTRet, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS ST retido"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCPSTRet',
+                        number_format($std->vBCFCPSTRet, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo "
                         . "do FCP retido anteriormente por ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCPSTRet',
-                    $std->pFCPSTRet,
-                    false,
-                    "$identificador [item $std->item] Percentual do FCP retido "
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCPSTRet',
+                        number_format($std->pFCPSTRet, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do FCP retido "
                         . "anteriormente por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCPSTRet',
-                    $std->vFCPSTRet,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP retido por "
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCPSTRet',
+                        number_format($std->vFCPSTRet, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP retido por "
                         . "Substituição Tributária"
-                );
+                    );
                 break;
             case '70':
                 $icms = $this->dom->createElement("ICMS70");
@@ -3333,148 +3374,148 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 70"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBC',
-                    $std->modBC,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBC',
-                    $std->pRedBC,
-                    true,
-                    "$identificador [item $std->item] Percentual da Redução de BC"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBC',
-                    $std->vBC,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMS',
-                    $std->pICMS,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMS',
-                    $std->vICMS,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCP',
-                    $std->vBCFCP,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCP',
-                    $std->pFCP,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 70"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBC',
+                        $std->modBC,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBC',
+                        ((float) $std->pRedBC == 0 ? '' : number_format($std->pRedBC, 4, '.', '')),
+                        true,
+                        "$identificador [item $std->item] Percentual da Redução de BC"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCP',
+                        number_format($std->vBCFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCP',
+                        number_format($std->pFCP, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP)"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCP',
-                    $std->vFCP,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBCST',
-                    $std->modBCST,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCST',
-                    $std->vBCST,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMSST',
-                    $std->pICMSST,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSST',
-                    $std->vICMSST,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCP',
+                        number_format($std->vFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBCST',
+                        $std->modBCST,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pMVAST',
+                        number_format($std->pMVAST, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCPST',
+                        number_format($std->vBCFCPST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCPST',
+                        number_format($std->pFCPST, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP) ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSDeson',
-                    $std->vICMSDeson,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS desonerado"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'motDesICMS',
-                    $std->motDesICMS,
-                    false,
-                    "$identificador [item $std->item] Motivo da desoneração do ICMS"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCPST',
+                        number_format($std->vFCPST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSDeson',
+                        ((float) $std->vICMSDeson == 0 ? '' : number_format($std->vICMSDeson, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS desonerado"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'motDesICMS',
+                        $std->motDesICMS,
+                        false,
+                        "$identificador [item $std->item] Motivo da desoneração do ICMS"
+                    );
                 break;
             case '90':
                 $icms = $this->dom->createElement("ICMS90");
@@ -3485,148 +3526,148 @@ class Make
                     true,
                     "$identificador [item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icms,
-                    'CST',
-                    $std->CST,
-                    true,
-                    "$identificador [item $std->item] Tributação do ICMS = 90"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBC',
-                    $std->modBC,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBC',
-                    $std->vBC,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBC',
-                    $std->pRedBC,
-                    false,
-                    "$identificador [item $std->item] Percentual da Redução de BC"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMS',
-                    $std->pICMS,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMS',
-                    $std->vICMS,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCP',
-                    $std->vBCFCP,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCP',
-                    $std->pFCP,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    $this->dom->addChild(
+                        $icms,
+                        'CST',
+                        $std->CST,
+                        true,
+                        "$identificador [item $std->item] Tributação do ICMS = 90"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBC',
+                        $std->modBC,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBC',
+                        ((float) $std->pRedBC == 0 ? '' : number_format($std->pRedBC, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da Redução de BC"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCP',
+                        number_format($std->vBCFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCP',
+                        number_format($std->pFCP, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP)"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCP',
-                    $std->vFCP,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'modBCST',
-                    $std->modBCST,
-                    true,
-                    "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCST',
-                    $std->vBCST,
-                    true,
-                    "$identificador [item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pICMSST',
-                    $std->pICMSST,
-                    true,
-                    "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSST',
-                    $std->vICMSST,
-                    true,
-                    "$identificador [item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "$identificador [item $std->item] Percentual do Fundo de "
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCP',
+                        number_format($std->vFCP, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'modBCST',
+                        $std->modBCST,
+                        true,
+                        "$identificador [item $std->item] Modalidade de determinação da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pMVAST',
+                        ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        true,
+                        "$identificador [item $std->item] Valor do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vBCFCPST',
+                        number_format($std->vBCFCPST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor da Base de Cálculo do FCP ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'pFCPST',
+                        number_format($std->pFCPST, 4, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Percentual do Fundo de "
                         . "Combate à Pobreza (FCP) ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "$identificador [item $std->item] Valor do FCP ST"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'vICMSDeson',
-                    $std->vICMSDeson,
-                    false,
-                    "$identificador [item $std->item] Valor do ICMS desonerado"
-                );
-                $this->dom->addChild(
-                    $icms,
-                    'motDesICMS',
-                    $std->motDesICMS,
-                    false,
-                    "$identificador [item $std->item] Motivo da desoneração do ICMS"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vFCPST',
+                        number_format($std->vFCPST, 2, '.', ''),
+                        false,
+                        "$identificador [item $std->item] Valor do FCP ST"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'vICMSDeson',
+                        ((float) $std->vICMSDeson == 0 ? '' : number_format($std->vICMSDeson, 2, '.', '')),
+                        false,
+                        "$identificador [item $std->item] Valor do ICMS desonerado"
+                    );
+                    $this->dom->addChild(
+                        $icms,
+                        'motDesICMS',
+                        $std->motDesICMS,
+                        false,
+                        "$identificador [item $std->item] Motivo da desoneração do ICMS"
+                    );
                 break;
         }
         $tagIcms = $this->dom->createElement('ICMS');
@@ -3641,7 +3682,8 @@ class Make
      * Grupo de Partilha do ICMS entre a UF de origem e UF de destino ou
      * a UF definida na legislação. N10a pai N01
      * tag NFe/infNFe/det[]/imposto/ICMS/ICMSPart
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagICMSPart(stdClass $std)
@@ -3666,128 +3708,133 @@ class Make
         ];
         $std = $this->equilizeParameters($std, $possible);
 
-        $icmsPart = $this->dom->createElement("ICMSPart");
-        $this->dom->addChild(
-            $icmsPart,
-            'orig',
-            $std->orig,
-            true,
-            "[item $std->item] Origem da mercadoria"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'CST',
-            $std->CST,
-            true,
-            "[item $std->item] Tributação do ICMS 10 ou 90"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'modBC',
-            $std->modBC,
-            true,
-            "[item $std->item] Modalidade de determinação da BC do ICMS"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'vBC',
-            $std->vBC,
-            true,
-            "[item $std->item] Valor da BC do ICMS"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'pRedBC',
-            $std->pRedBC,
-            false,
-            "[item $std->item] Percentual da Redução de BC"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'pICMS',
-            $std->pICMS,
-            true,
-            "[item $std->item] Alíquota do imposto"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'vICMS',
-            $std->vICMS,
-            true,
-            "[item $std->item] Valor do ICMS"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'modBCST',
-            $std->modBCST,
-            true,
-            "[item $std->item] Modalidade de determinação da BC do ICMS ST"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'pMVAST',
-            $std->pMVAST,
-            false,
-            "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'pRedBCST',
-            $std->pRedBCST,
-            false,
-            "[item $std->item] Percentual da Redução de BC do ICMS ST"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'vBCST',
-            $std->vBCST,
-            true,
-            "[item $std->item] Valor da BC do ICMS ST"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'pICMSST',
-            $std->pICMSST,
-            true,
-            "[item $std->item] Alíquota do imposto do ICMS ST"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'vICMSST',
-            $std->vICMSST,
-            true,
-            "[item $std->item] Valor do ICMS ST"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'pBCOp',
-            $std->pBCOp,
-            true,
-            "[item $std->item] Percentual da BC operação própria"
-        );
-        $this->dom->addChild(
-            $icmsPart,
-            'UFST',
-            $std->UFST,
-            true,
-            "[item $std->item] UF para qual é devido o ICMS ST"
-        );
-        //caso exista a tag aICMS[$std->item] inserir nela caso contrario criar
-        if (!empty($this->aICMS[$std->item])) {
-            $tagIcms = $this->aICMS[$std->item];
-        } else {
-            $tagIcms = $this->dom->createElement('ICMS');
+        if ($std->CST === '10'
+            || $std->CST === '90'
+        ) {
+            $icmsPart = $this->dom->createElement("ICMSPart");
+            $this->dom->addChild(
+                $icmsPart,
+                'orig',
+                $std->orig,
+                true,
+                "[item $std->item] Origem da mercadoria"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'CST',
+                $std->CST,
+                true,
+                "[item $std->item] Tributação do ICMS 10 ou 90"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'modBC',
+                $std->modBC,
+                true,
+                "[item $std->item] Modalidade de determinação da BC do ICMS"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'vBC',
+                number_format($std->vBC, 2, '.', ''),
+                true,
+                "[item $std->item] Valor da BC do ICMS"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'pRedBC',
+                ((float) $std->pRedBC == 0 ? '' : number_format($std->pRedBC, 4, '.', '')),
+                false,
+                "[item $std->item] Percentual da Redução de BC"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'pICMS',
+                number_format($std->pICMS, 4, '.', ''),
+                true,
+                "[item $std->item] Alíquota do imposto"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'vICMS',
+                number_format($std->vICMS, 2, '.', ''),
+                true,
+                "[item $std->item] Valor do ICMS"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'modBCST',
+                $std->modBCST,
+                true,
+                "[item $std->item] Modalidade de determinação da BC do ICMS ST"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'pMVAST',
+                ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                false,
+                "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'pRedBCST',
+                ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                false,
+                "[item $std->item] Percentual da Redução de BC do ICMS ST"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'vBCST',
+                number_format($std->vBCST, 2, '.', ''),
+                true,
+                "[item $std->item] Valor da BC do ICMS ST"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'pICMSST',
+                number_format($std->pICMSST, 4, '.', ''),
+                true,
+                "[item $std->item] Alíquota do imposto do ICMS ST"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'vICMSST',
+                number_format($std->vICMSST, 2, '.', ''),
+                true,
+                "[item $std->item] Valor do ICMS ST"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'pBCOp',
+                ((float) $std->pBCOp == 0 ? '' : number_format($std->pBCOp, 4, '.', '')),
+                false,
+                "[item $std->item] Percentual da BC operação própria"
+            );
+            $this->dom->addChild(
+                $icmsPart,
+                'UFST',
+                $std->UFST,
+                true,
+                "[item $std->item] UF para qual é devido o ICMS ST"
+            );
+            //caso exista a tag aICMS[$std->item] inserir nela caso contrario criar
+            if (!empty($this->aICMS[$std->item])) {
+                $tagIcms = $this->aICMS[$std->item];
+            } else {
+                $tagIcms = $this->dom->createElement('ICMS');
+            }
+            $this->dom->appChild($tagIcms, $icmsPart, "Inserindo ICMSPart em ICMS[$std->item]");
+            $this->aICMS[$std->item] = $tagIcms;
+            return $tagIcms;
         }
-        $this->dom->appChild($tagIcms, $icmsPart, "Inserindo ICMSPart em ICMS[$std->item]");
-        $this->aICMS[$std->item] = $tagIcms;
-        return $tagIcms;
     }
 
     /**
      * Grupo de Repasse de ICMSST retido anteriormente em operações
      * interestaduais com repasses através do Substituto Tributário
      * tag NFe/infNFe/det[]/imposto/ICMS/ICMSST N10b pai N01
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagICMSST(stdClass $std)
@@ -3803,64 +3850,67 @@ class Make
         ];
         $std = $this->equilizeParameters($std, $possible);
 
-        $icmsST = $this->dom->createElement("ICMSST");
-        $this->dom->addChild(
-            $icmsST,
-            'orig',
-            $std->orig,
-            true,
-            "[item $std->item] Origem da mercadoria"
-        );
-        $this->dom->addChild(
-            $icmsST,
-            'CST',
-            $std->CST,
-            true,
-            "[item $std->item] Tributação do ICMS 41"
-        );
-        $this->dom->addChild(
-            $icmsST,
-            'vBCSTRet',
-            $std->vBCSTRet,
-            true,
-            "[item $std->item] Valor do BC do ICMS ST retido na UF remetente"
-        );
-        $this->dom->addChild(
-            $icmsST,
-            'vICMSSTRet',
-            $std->vICMSSTRet,
-            false,
-            "[item $std->item] Valor do ICMS ST retido na UF remetente"
-        );
-        $this->dom->addChild(
-            $icmsST,
-            'vBCSTDest',
-            $std->vBCSTDest,
-            true,
-            "[item $std->item] Valor da BC do ICMS ST da UF destino"
-        );
-        $this->dom->addChild(
-            $icmsST,
-            'vICMSSTDest',
-            $std->vICMSSTDest,
-            true,
-            "[item $std->item] Valor do ICMS ST da UF destino"
-        );
-        //caso exista a tag aICMS[$std->item] inserir nela caso contrario criar
-        if (!empty($this->aICMS[$std->item])) {
-            $tagIcms = $this->aICMS[$std->item];
-        } else {
-            $tagIcms = $this->dom->createElement('ICMS');
+        if ($std->CST === '41') {
+            $icmsST = $this->dom->createElement("ICMSST");
+            $this->dom->addChild(
+                $icmsST,
+                'orig',
+                $std->orig,
+                true,
+                "[item $std->item] Origem da mercadoria"
+            );
+            $this->dom->addChild(
+                $icmsST,
+                'CST',
+                $std->CST,
+                true,
+                "[item $std->item] Tributação do ICMS 41"
+            );
+            $this->dom->addChild(
+                $icmsST,
+                'vBCSTRet',
+                number_format($std->vBCSTRet, 2, '.', ''),
+                true,
+                "[item $std->item] Valor do BC do ICMS ST retido na UF remetente"
+            );
+            $this->dom->addChild(
+                $icmsST,
+                'vICMSSTRet',
+                number_format($std->vICMSSTRet, 2, '.', ''),
+                false,
+                "[item $std->item] Valor do ICMS ST retido na UF remetente"
+            );
+            $this->dom->addChild(
+                $icmsST,
+                'vBCSTDest',
+                number_format($std->vBCSTDest, 2, '.', ''),
+                true,
+                "[item $std->item] Valor da BC do ICMS ST da UF destino"
+            );
+            $this->dom->addChild(
+                $icmsST,
+                'vICMSSTDest',
+                number_format($std->vICMSSTDest, 2, '.', ''),
+                true,
+                "[item $std->item] Valor do ICMS ST da UF destino"
+            );
+            //caso exista a tag aICMS[$std->item] inserir nela caso contrario criar
+            if (!empty($this->aICMS[$std->item])) {
+                $tagIcms = $this->aICMS[$std->item];
+            } else {
+                $tagIcms = $this->dom->createElement('ICMS');
+            }
+            $this->dom->appChild($tagIcms, $icmsST, "Inserindo ICMSST em ICMS[$std->item]");
+            $this->aICMS[$std->item] = $tagIcms;
+            return $tagIcms;
         }
-        $this->dom->appChild($tagIcms, $icmsST, "Inserindo ICMSST em ICMS[$std->item]");
-        $this->aICMS[$std->item] = $tagIcms;
-        return $tagIcms;
     }
 
     /**
      * Tributação ICMS pelo Simples Nacional N10c pai N01
      * tag NFe/infNFe/det[]/imposto/ICMS/ICMSSN N10c pai N01
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagICMSSN(stdClass $std)
@@ -3900,6 +3950,9 @@ class Make
         $this->stdTot->vBCST += (float) $std->vBCST;
         $this->stdTot->vST += (float) $std->vICMSST;
 
+        $this->stdTot->vFCPST += (float) !empty($std->vFCPST) ? $std->vFCPST : 0;
+        $this->stdTot->vFCPSTRet += (float) !empty($std->vFCPST) ? $std->vFCPSTRet : 0;
+        
         switch ($std->CSOSN) {
             case '101':
                 $icmsSN = $this->dom->createElement("ICMSSN101");
@@ -3910,28 +3963,28 @@ class Make
                     true,
                     "[item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'CSOSN',
-                    $std->CSOSN,
-                    true,
-                    "[item $std->item] Código de Situação da Operação Simples Nacional"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pCredSN',
-                    $std->pCredSN,
-                    true,
-                    "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vCredICMSSN',
-                    $std->vCredICMSSN,
-                    true,
-                    "[item $std->item] Valor crédito do ICMS que pode ser aproveitado nos termos do"
-                    . " art. 23 da LC 123 (Simples Nacional)"
-                );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'CSOSN',
+                        $std->CSOSN,
+                        true,
+                        "[item $std->item] Código de Situação da Operação Simples Nacional"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pCredSN',
+                        number_format($std->pCredSN, 4, '.', ''),
+                        true,
+                        "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vCredICMSSN',
+                        number_format($std->vCredICMSSN, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor crédito do ICMS que pode ser aproveitado nos termos do"
+                        . " art. 23 da LC 123 (Simples Nacional)"
+                    );
                 break;
             case '102':
             case '103':
@@ -3945,13 +3998,13 @@ class Make
                     true,
                     "[item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'CSOSN',
-                    $std->CSOSN,
-                    true,
-                    "[item $std->item] Código de Situação da Operação Simples Nacional"
-                );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'CSOSN',
+                        $std->CSOSN,
+                        true,
+                        "[item $std->item] Código de Situação da Operação Simples Nacional"
+                    );
                 break;
             case '201':
                 $icmsSN = $this->dom->createElement("ICMSSN201");
@@ -3962,93 +4015,93 @@ class Make
                     true,
                     "[item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'CSOSN',
-                    $std->CSOSN,
-                    true,
-                    "[item $std->item] Código de Situação da Operação Simples Nacional"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'modBCST',
-                    $std->modBCST,
-                    true,
-                    "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "[item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCST',
-                    $std->vBCST,
-                    true,
-                    "[item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pICMSST',
-                    $std->pICMSST,
-                    true,
-                    "[item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vICMSST',
-                    $std->vICMSST,
-                    true,
-                    "[item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "[item $std->item] Valor da Base de Cálculo do FCP "
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'CSOSN',
+                        $std->CSOSN,
+                        true,
+                        "[item $std->item] Código de Situação da Operação Simples Nacional"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'modBCST',
+                        $std->modBCST,
+                        true,
+                        "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pMVAST',
+                        ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        true,
+                        "[item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCFCPST',
+                        number_format($std->vBCFCPST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da Base de Cálculo do FCP "
                         . "retido por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "[item $std->item] Percentual do FCP retido por "
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pFCPST',
+                        number_format($std->pFCPST, 4, '.', ''),
+                        false,
+                        "[item $std->item] Percentual do FCP retido por "
                         . "Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "[item $std->item] Valor do FCP retido por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pCredSN',
-                    $std->pCredSN,
-                    true,
-                    "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vCredICMSSN',
-                    $std->vCredICMSSN,
-                    true,
-                    "[item $std->item] Valor crédito do ICMS que pode ser aproveitado nos "
-                    . "termos do art. 23 da LC 123 (Simples Nacional)"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vFCPST',
+                        number_format($std->vFCPST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do FCP retido por Substituição Tributária"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pCredSN',
+                        number_format($std->pCredSN, 4, '.', ''),
+                        true,
+                        "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vCredICMSSN',
+                        number_format($std->vCredICMSSN, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor crédito do ICMS que pode ser aproveitado nos "
+                        . "termos do art. 23 da LC 123 (Simples Nacional)"
+                    );
                 break;
             case '202':
             case '203':
@@ -4060,78 +4113,78 @@ class Make
                     true,
                     "[item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'CSOSN',
-                    $std->CSOSN,
-                    true,
-                    "[item $std->item] Código de Situação da Operação Simples Nacional"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'modBCST',
-                    $std->modBCST,
-                    true,
-                    "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "[item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCST',
-                    $std->vBCST,
-                    true,
-                    "[item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pICMSST',
-                    $std->pICMSST,
-                    true,
-                    "[item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vICMSST',
-                    $std->vICMSST,
-                    true,
-                    "[item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "[item $std->item] Valor da Base de Cálculo do FCP "
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'CSOSN',
+                        $std->CSOSN,
+                        true,
+                        "[item $std->item] Código de Situação da Operação Simples Nacional"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'modBCST',
+                        $std->modBCST,
+                        true,
+                        "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pMVAST',
+                        ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        true,
+                        "[item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCFCPST',
+                        number_format($std->vBCFCPST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da Base de Cálculo do FCP "
                         . "retido por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "[item $std->item] Percentual do FCP retido por "
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pFCPST',
+                        number_format($std->pFCPST, 4, '.', ''),
+                        false,
+                        "[item $std->item] Percentual do FCP retido por "
                         . "Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "[item $std->item] Valor do FCP retido por Substituição Tributária"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vFCPST',
+                        number_format($std->vFCPST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do FCP retido por Substituição Tributária"
+                    );
                 break;
             case '500':
                 $icmsSN = $this->dom->createElement("ICMSSN500");
@@ -4142,58 +4195,58 @@ class Make
                     true,
                     "[item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'CSOSN',
-                    $std->CSOSN,
-                    true,
-                    "[item $std->item] Código de Situação da Operação Simples Nacional"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCSTRet',
-                    $std->vBCSTRet,
-                    false,
-                    "[item $std->item] Valor da BC do ICMS ST retido"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pST',
-                    $std->pST,
-                    false,
-                    "[item $std->item] Alíquota suportada pelo Consumidor Final"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vICMSSTRet',
-                    $std->vICMSSTRet,
-                    false,
-                    "[item $std->item] Valor do ICMS ST retido"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCFCPSTRet',
-                    $std->vBCFCPSTRet,
-                    false,
-                    "[item $std->item] Valor da Base de Cálculo do FCP "
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'CSOSN',
+                        $std->CSOSN,
+                        true,
+                        "[item $std->item] Código de Situação da Operação Simples Nacional"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCSTRet',
+                        number_format($std->vBCSTRet, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da BC do ICMS ST retido"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pST',
+                        number_format($std->pST, 4, '.', ''),
+                        false,
+                        "[item $std->item] Alíquota suportada pelo Consumidor Final"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vICMSSTRet',
+                        number_format($std->vICMSSTRet, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do ICMS ST retido"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCFCPSTRet',
+                        number_format($std->vBCFCPSTRet, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da Base de Cálculo do FCP "
                         . "retido anteriormente por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pFCPSTRet',
-                    $std->pFCPSTRet,
-                    false,
-                    "[item $std->item] Percentual do FCP retido anteriormente por "
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pFCPSTRet',
+                        number_format($std->pFCPSTRet, 4, '.', ''),
+                        false,
+                        "[item $std->item] Percentual do FCP retido anteriormente por "
                         . "Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vFCPSTRet',
-                    $std->vFCPSTRet,
-                    false,
-                    "[item $std->item] Valor do FCP retido anteiormente por "
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vFCPSTRet',
+                        number_format($std->vFCPSTRet, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do FCP retido anteiormente por "
                         . "Substituição Tributária"
-                );
+                    );
                 break;
             case '900':
                 $icmsSN = $this->dom->createElement("ICMSSN900");
@@ -4204,128 +4257,128 @@ class Make
                     true,
                     "[item $std->item] Origem da mercadoria"
                 );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'CSOSN',
-                    $std->CSOSN,
-                    true,
-                    "[item $std->item] Código de Situação da Operação Simples Nacional"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'modBC',
-                    $std->modBC,
-                    false,
-                    "[item $std->item] Modalidade de determinação da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBC',
-                    $std->vBC,
-                    false,
-                    "[item $std->item] Valor da BC do ICMS"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pRedBC',
-                    $std->pRedBC,
-                    false,
-                    "[item $std->item] Percentual da Redução de BC"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pICMS',
-                    $std->pICMS,
-                    false,
-                    "[item $std->item] Alíquota do imposto"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vICMS',
-                    $std->vICMS,
-                    false,
-                    "[item $std->item] Valor do ICMS"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'modBCST',
-                    $std->modBCST,
-                    false,
-                    "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pMVAST',
-                    $std->pMVAST,
-                    false,
-                    "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pRedBCST',
-                    $std->pRedBCST,
-                    false,
-                    "[item $std->item] Percentual da Redução de BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCST',
-                    $std->vBCST,
-                    false,
-                    "[item $std->item] Valor da BC do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pICMSST',
-                    $std->pICMSST,
-                    false,
-                    "[item $std->item] Alíquota do imposto do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vICMSST',
-                    $std->vICMSST,
-                    false,
-                    "[item $std->item] Valor do ICMS ST"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vBCFCPST',
-                    $std->vBCFCPST,
-                    false,
-                    "[item $std->item] Valor da Base de Cálculo do FCP "
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'CSOSN',
+                        $std->CSOSN,
+                        true,
+                        "[item $std->item] Código de Situação da Operação Simples Nacional"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'modBC',
+                        $std->modBC,
+                        false,
+                        "[item $std->item] Modalidade de determinação da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da BC do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pRedBC',
+                        ((float) $std->pRedBC == 0 ? '' : number_format($std->pRedBC, 4, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da Redução de BC"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pICMS',
+                        number_format($std->pICMS, 4, '.', ''),
+                        false,
+                        "[item $std->item] Alíquota do imposto"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vICMS',
+                        number_format($std->vICMS, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do ICMS"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'modBCST',
+                        number_format($std->modBCST, 4, '.', ''),
+                        false,
+                        "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pMVAST',
+                        ((float) $std->pMVAST == 0 ? '' : number_format($std->pMVAST, 2, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da margem de valor Adicionado do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pRedBCST',
+                        ((float) $std->pRedBCST == 0 ? '' : number_format($std->pRedBCST, 4, '.', '')),
+                        false,
+                        "[item $std->item] Percentual da Redução de BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCST',
+                        number_format($std->vBCST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da BC do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pICMSST',
+                        number_format($std->pICMSST, 4, '.', ''),
+                        false,
+                        "[item $std->item] Alíquota do imposto do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vICMSST',
+                        number_format($std->vICMSST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do ICMS ST"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vBCFCPST',
+                        number_format($std->vBCFCPST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor da Base de Cálculo do FCP "
                         . "retido por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pFCPST',
-                    $std->pFCPST,
-                    false,
-                    "[item $std->item] Percentual do FCP retido por "
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pFCPST',
+                        number_format($std->pFCPST, 4, '.', ''),
+                        false,
+                        "[item $std->item] Percentual do FCP retido por "
                         . "Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vFCPST',
-                    $std->vFCPST,
-                    false,
-                    "[item $std->item] Valor do FCP retido por Substituição Tributária"
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'pCredSN',
-                    $std->pCredSN,
-                    false,
-                    "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                );
-                $this->dom->addChild(
-                    $icmsSN,
-                    'vCredICMSSN',
-                    $std->vCredICMSSN,
-                    false,
-                    "[item $std->item] Valor crédito do ICMS que pode ser aproveitado nos termos do"
-                    . " art. 23 da LC 123 (Simples Nacional)"
-                );
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vFCPST',
+                        number_format($std->vFCPST, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor do FCP retido por Substituição Tributária"
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'pCredSN',
+                        number_format($std->pCredSN, 4, '.', ''),
+                        false,
+                        "[item $std->item] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                    );
+                    $this->dom->addChild(
+                        $icmsSN,
+                        'vCredICMSSN',
+                        number_format($std->vCredICMSSN, 2, '.', ''),
+                        false,
+                        "[item $std->item] Valor crédito do ICMS que pode ser aproveitado nos termos do"
+                        . " art. 23 da LC 123 (Simples Nacional)"
+                    );
                 break;
         }
         //caso exista a tag aICMS[$std-item] inserir nela caso contrario criar
@@ -4346,7 +4399,8 @@ class Make
      * tag NFe/infNFe/det[]/imposto/ICMSUFDest (opcional)
      * Grupo a ser informado nas vendas interestaduais para consumidor final,
      * não contribuinte do ICMS
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagICMSUFDest(stdClass $std)
@@ -4373,64 +4427,66 @@ class Make
         $this->dom->addChild(
             $icmsUFDest,
             "vBCUFDest",
-            $std->vBCUFDest,
+            number_format($std->vBCUFDest, 2, '.', ''),
             true,
             "[item $std->item] Valor da BC do ICMS na UF do destinatário"
         );
-        //introduzido no layout 4.00
-        $this->dom->addChild(
-            $icmsUFDest,
-            "vBCFCPUFDest",
-            $std->vBCFCPUFDest,
-            false,
-            "[item $std->item] Valor da BC do ICMS na UF do destinatário"
-        );
+        if ($this->version !== '3.10') {
+            //introduzido no layout 4.00
+            $this->dom->addChild(
+                $icmsUFDest,
+                "vBCFCPUFDest",
+                number_format($std->vBCFCPUFDest, 2, '.', ''),
+                false,
+                "[item $std->item] Valor da BC do ICMS na UF do destinatário"
+            );
+        }
         $this->dom->addChild(
             $icmsUFDest,
             "pFCPUFDest",
-            $std->pFCPUFDest,
+            number_format($std->pFCPUFDest, 4, '.', ''),
             true,
             "[item $std->item] Percentual do ICMS relativo ao Fundo de Combate à Pobreza (FCP) na UF de destino"
         );
         $this->dom->addChild(
             $icmsUFDest,
             "pICMSUFDest",
-            $std->pICMSUFDest,
+            number_format($std->pICMSUFDest, 4, '.', ''),
             true,
             "[item $std->item] Alíquota interna da UF do destinatário"
         );
         $this->dom->addChild(
             $icmsUFDest,
             "pICMSInter",
-            $std->pICMSInter,
+            number_format($std->pICMSInter, 2, '.', ''),
             true,
             "[item $std->item] Alíquota interestadual das UF envolvidas"
         );
         $this->dom->addChild(
             $icmsUFDest,
             "pICMSInterPart",
-            $std->pICMSInterPart,
+            number_format($std->pICMSInterPart, 4, '.', ''),
             true,
             "[item $std->item] Percentual provisório de partilha entre os Estados"
         );
         $this->dom->addChild(
             $icmsUFDest,
             "vFCPUFDest",
-            $std->vFCPUFDest,
+            number_format($std->vFCPUFDest, 2, '.', ''),
             false,
             "[item $std->item] Valor do ICMS relativo ao Fundo de Combate à Pobreza (FCP) da UF de destino"
         );
         $this->dom->addChild(
             $icmsUFDest,
             "vICMSUFDest",
-            $std->vICMSUFDest,
+            number_format($std->vICMSUFDest, 2, '.', ''),
             false,
             "[item $std->item] Valor do ICMS de partilha para a UF do destinatário"
         );
         $this->dom->addChild(
             $icmsUFDest,
             "vICMSUFRemet",
-            $std->vICMSUFRemet,
+            number_format($std->vICMSUFRemet, 2, '.', ''),
             false,
             "[item $std->item] Valor do ICMS de partilha para a UF do remetente"
         );
@@ -4441,7 +4497,8 @@ class Make
     /**
      * Grupo IPI O01 pai M01
      * tag NFe/infNFe/det[]/imposto/IPI (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagIPI(stdClass $std)
@@ -4514,36 +4571,36 @@ class Make
             $this->dom->addChild(
                 $ipiTrib,
                 "vBC",
-                $std->vBC,
+                number_format($std->vBC, 2, '.', ''),
                 false,
                 "[item $std->item] Valor da BC do IPI"
             );
             $this->dom->addChild(
                 $ipiTrib,
                 "pIPI",
-                $std->pIPI,
+                number_format($std->pIPI, 4, '.', ''),
                 false,
                 "[item $std->item] Alíquota do IPI"
             );
             $this->dom->addChild(
                 $ipiTrib,
                 "qUnid",
-                $std->qUnid,
+                ((float) $std->qUnid == 0 ? '' : number_format($std->qUnid, 4, '.', '')),
                 false,
                 "[item $std->item] Quantidade total na unidade padrão para tributação (somente para os "
                 . "produtos tributados por unidade)"
             );
             $this->dom->addChild(
                 $ipiTrib,
-                "vUnid",
-                $std->vUnid,
+                "VUnid",
+                ((float) $std->vUnid == 0 ? '' : number_format($std->vUnid, 4, '.', '')),
                 false,
                 "[item $std->item] Valor por Unidade Tributável"
             );
             $this->dom->addChild(
                 $ipiTrib,
                 "vIPI",
-                $std->vIPI,
+                number_format($std->vIPI, 2, '.', ''),
                 true,
                 "[item $std->item] Valor do IPI"
             );
@@ -4566,7 +4623,8 @@ class Make
     /**
      * Grupo Imposto de Importação P01 pai M01
      * tag NFe/infNFe/det[]/imposto/II
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagII(stdClass $std)
@@ -4619,7 +4677,8 @@ class Make
     /**
      * Grupo PIS Q01 pai M01
      * tag NFe/infNFe/det[]/imposto/PIS
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagPIS(stdClass $std)
@@ -4649,27 +4708,27 @@ class Make
                     true,
                     "[item $std->item] Código de Situação Tributária do PIS"
                 );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vBC',
-                    $std->vBC,
-                    true,
-                    "[item $std->item] Valor da Base de Cálculo do PIS"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'pPIS',
-                    $std->pPIS,
-                    true,
-                    "[item $std->item] Alíquota do PIS (em percentual)"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vPIS',
-                    $std->vPIS,
-                    true,
-                    "[item $std->item] Valor do PIS"
-                );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor da Base de Cálculo do PIS"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'pPIS',
+                        number_format($std->pPIS, 4, '.', ''),
+                        true,
+                        "[item $std->item] Alíquota do PIS (em percentual)"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vPIS',
+                        number_format($std->vPIS, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor do PIS"
+                    );
                 break;
             case '03':
                 $pisItem = $this->dom->createElement('PISQtde');
@@ -4680,27 +4739,27 @@ class Make
                     true,
                     "[item $std->item] Código de Situação Tributária do PIS"
                 );
-                $this->dom->addChild(
-                    $pisItem,
-                    'qBCProd',
-                    $std->qBCProd,
-                    true,
-                    "[item $std->item] Quantidade Vendida"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vAliqProd',
-                    $std->vAliqProd,
-                    true,
-                    "[item $std->item] Alíquota do PIS (em reais)"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vPIS',
-                    $std->vPIS,
-                    true,
-                    "[item $std->item] Valor do PIS"
-                );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'qBCProd',
+                        ((float) $std->qBCProd == 0 ? '' : number_format($std->qBCProd, 4, '.', '')),
+                        true,
+                        "[item $std->item] Quantidade Vendida"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vAliqProd',
+                        ((float) $std->vAliqProd == 0 ? '' : number_format($std->vAliqProd, 4, '.', '')),
+                        true,
+                        "[item $std->item] Alíquota do PIS (em reais)"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vPIS',
+                        number_format($std->vPIS, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor do PIS"
+                    );
                 break;
             case '04':
             case '05':
@@ -4749,41 +4808,41 @@ class Make
                     true,
                     "[item $std->item] Código de Situação Tributária do PIS"
                 );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vBC',
-                    $std->vBC,
-                    ($std->vBC !== null) ? true : false,
-                    "[item $std->item] Valor da Base de Cálculo do PIS"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'pPIS',
-                    $std->pPIS,
-                    ($std->pPIS !== null) ? true : false,
-                    "[item $std->item] Alíquota do PIS (em percentual)"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'qBCProd',
-                    $std->qBCProd,
-                    ($std->qBCProd !== null) ? true : false,
-                    "[item $std->item] Quantidade Vendida"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vAliqProd',
-                    $std->vAliqProd,
-                    ($std->vAliqProd !== null) ? true : false,
-                    "[item $std->item] Alíquota do PIS (em reais)"
-                );
-                $this->dom->addChild(
-                    $pisItem,
-                    'vPIS',
-                    number_format($std->vPIS, 2, '.', ''),
-                    true,
-                    "[item $std->item] Valor do PIS"
-                );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vBC',
+                        number_format($std->vBC, 2, '.', ''),
+                        ($std->vBC !== null) ? true : false,
+                        "[item $std->item] Valor da Base de Cálculo do PIS"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'pPIS',
+                        number_format($std->pPIS, 4, '.', ''),
+                        ($std->pPIS !== null) ? true : false,
+                        "[item $std->item] Alíquota do PIS (em percentual)"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'qBCProd',
+                        ((float) $std->qBCProd == 0 ? '' : number_format($std->qBCProd, 4, '.', '')),
+                        ($std->qBCProd !== null) ? true : false,
+                        "[item $std->item] Quantidade Vendida"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vAliqProd',
+                        ((float) $std->vAliqProd == 0 ? '' : number_format($std->vAliqProd, 4, '.', '')),
+                        ($std->vAliqProd !== null) ? true : false,
+                        "[item $std->item] Alíquota do PIS (em reais)"
+                    );
+                    $this->dom->addChild(
+                        $pisItem,
+                        'vPIS',
+                        number_format($std->vPIS, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor do PIS"
+                    );
                 break;
         }
         $pis = $this->dom->createElement('PIS');
@@ -4797,7 +4856,8 @@ class Make
     /**
      * Grupo PIS Substituição Tributária R01 pai M01
      * tag NFe/infNFe/det[]/imposto/PISST (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagPISST(stdClass $std)
@@ -4816,35 +4876,35 @@ class Make
         $this->dom->addChild(
             $pisst,
             'vBC',
-            $std->vBC,
-            true,
+            ((float) $std->vBC == 0 ? '' : number_format($std->vBC, 2, '.', '')),
+            false,
             "[item $std->item] Valor da Base de Cálculo do PIS"
         );
         $this->dom->addChild(
             $pisst,
             'pPIS',
-            $std->pPIS,
+            number_format($std->pPIS, 4, '.', ''),
             true,
             "[item $std->item] Alíquota do PIS (em percentual)"
         );
         $this->dom->addChild(
             $pisst,
             'qBCProd',
-            $std->qBCProd,
+            ((float) $std->qBCProd == 0 ? '' : number_format($std->qBCProd, 4, '.', '')),
             true,
             "[item $std->item] Quantidade Vendida"
         );
         $this->dom->addChild(
             $pisst,
             'vAliqProd',
-            $std->vAliqProd,
+            ((float) $std->vAliqProd == 0 ? '' : number_format($std->vAliqProd, 4, '.', '')),
             true,
             "[item $std->item] Alíquota do PIS (em reais)"
         );
         $this->dom->addChild(
             $pisst,
             'vPIS',
-            $std->vPIS,
+            number_format($std->vPIS, 2, '.', ''),
             true,
             "[item $std->item] Valor do PIS"
         );
@@ -4855,6 +4915,7 @@ class Make
     /**
      * Grupo COFINS S01 pai M01
      * tag det[item]/imposto/COFINS (opcional)
+     *
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -4888,27 +4949,27 @@ class Make
                     true,
                     "[item $std->item] Código de Situação Tributária da COFINS"
                 );
-                $this->dom->addChild(
-                    $confinsItem,
-                    'qBCProd',
-                    $std->qBCProd,
-                    true,
-                    "[item $std->item] Quantidade Vendida"
-                );
-                $this->dom->addChild(
-                    $confinsItem,
-                    'vAliqProd',
-                    $std->vAliqProd,
-                    true,
-                    "[item $std->item] Alíquota do COFINS (em reais)"
-                );
-                $this->dom->addChild(
-                    $confinsItem,
-                    'vCOFINS',
-                    $std->vCOFINS,
-                    true,
-                    "[item $std->item] Valor do COFINS"
-                );
+                    $this->dom->addChild(
+                        $confinsItem,
+                        'qBCProd',
+                        ((float) $std->qBCProd == 0 ? '' : number_format($std->qBCProd, 4, '.', '')),
+                        true,
+                        "[item $std->item] Quantidade Vendida"
+                    );
+                    $this->dom->addChild(
+                        $confinsItem,
+                        'vAliqProd',
+                        ((float) $std->vAliqProd == 0 ? '' : number_format($std->vAliqProd, 4, '.', '')),
+                        true,
+                        "[item $std->item] Alíquota do COFINS (em reais)"
+                    );
+                    $this->dom->addChild(
+                        $confinsItem,
+                        'vCOFINS',
+                        number_format($std->vCOFINS, 2, '.', ''),
+                        true,
+                        "[item $std->item] Valor do COFINS"
+                    );
                 break;
             case '04':
             case '05':
@@ -4956,7 +5017,8 @@ class Make
     /**
      * Grupo COFINS Substituição Tributária T01 pai M01
      * tag NFe/infNFe/det[]/imposto/COFINSST (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagCOFINSST(stdClass $std)
@@ -4975,35 +5037,35 @@ class Make
         $this->dom->addChild(
             $cofinsst,
             "vBC",
-            $std->vBC,
+            number_format($std->vBC, 2, '.', ''),
             true,
             "[item $std->item] Valor da Base de Cálculo da COFINS"
         );
         $this->dom->addChild(
             $cofinsst,
             "pCOFINS",
-            $std->pCOFINS,
+            number_format($std->pCOFINS, 4, '.', ''),
             true,
             "[item $std->item] Alíquota da COFINS (em percentual)"
         );
         $this->dom->addChild(
             $cofinsst,
             "qBCProd",
-            $std->qBCProd,
+            ((float) $std->qBCProd == 0 ? '' : number_format($std->qBCProd, 4, '.', '')),
             true,
             "[item $std->item] Quantidade Vendida"
         );
         $this->dom->addChild(
             $cofinsst,
             "vAliqProd",
-            $std->vAliqProd,
+            ((float) $std->vAliqProd == 0 ? '' : number_format($std->vAliqProd, 4, '.', '')),
             true,
             "[item $std->item] Alíquota da COFINS (em reais)"
         );
         $this->dom->addChild(
             $cofinsst,
             "vCOFINS",
-            $std->vCOFINS,
+            number_format($std->vCOFINS, 2, '.', ''),
             true,
             "[item $std->item] Valor da COFINS"
         );
@@ -5014,7 +5076,8 @@ class Make
     /**
      * Grupo ISSQN U01 pai M01
      * tag NFe/infNFe/det[]/imposto/ISSQN (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagISSQN(stdClass $std)
@@ -5044,21 +5107,21 @@ class Make
         $this->dom->addChild(
             $issqn,
             "vBC",
-            $std->vBC,
+            number_format($std->vBC, 2, '.', ''),
             true,
             "[item $std->item] Valor da Base de Cálculo do ISSQN"
         );
         $this->dom->addChild(
             $issqn,
             "vAliq",
-            $std->vAliq,
+            number_format($std->vAliq, 4, '.', ''),
             true,
             "[item $std->item] Alíquota do ISSQN"
         );
         $this->dom->addChild(
             $issqn,
             "vISSQN",
-            $std->vISSQN,
+            number_format($std->vISSQN, 2, '.', ''),
             true,
             "[item $std->item] Valor do ISSQN"
         );
@@ -5079,35 +5142,35 @@ class Make
         $this->dom->addChild(
             $issqn,
             "vDeducao",
-            $std->vDeducao,
+            ((float) $std->vDeducao == 0 ? '' : number_format($std->vDeducao, 2, '.', '')),
             false,
             "[item $std->item] Valor dedução para redução da Base de Cálculo"
         );
         $this->dom->addChild(
             $issqn,
             "vOutro",
-            $std->vOutro,
+            ((float) $std->vOutro == 0 ? '' : number_format($std->vOutro, 2, '.', '')),
             false,
             "[item $std->item] Valor outras retenções"
         );
         $this->dom->addChild(
             $issqn,
             "vDescIncond",
-            $std->vDescIncond,
+            ((float) $std->vDescIncond == 0 ? '' : number_format($std->vDescIncond, 2, '.', '')),
             false,
             "[item $std->item] Valor desconto incondicionado"
         );
         $this->dom->addChild(
             $issqn,
             "vDescCond",
-            $std->vDescCond,
+            ((float) $std->vDescCond == 0 ? '' : number_format($std->vDescCond, 2, '.', '')),
             false,
             "[item $std->item] Valor desconto condicionado"
         );
         $this->dom->addChild(
             $issqn,
             "vISSRet",
-            $std->vISSRet,
+            ((float) $std->vISSRet == 0 ? '' : number_format($std->vISSRet, 2, '.', '')),
             false,
             "[item $std->item] Valor retenção ISS"
         );
@@ -5160,7 +5223,8 @@ class Make
     /**
      * Informação do Imposto devolvido U50 pai H01
      * tag NFe/infNFe/det[]/impostoDevol (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagimpostoDevol(stdClass $std)
@@ -5179,7 +5243,7 @@ class Make
         $this->dom->addChild(
             $impostoDevol,
             "pDevol",
-            $std->pDevol,
+            number_format($std->pDevol, 4, '.', ''),
             true,
             "[item $std->item] Percentual da mercadoria devolvida"
         );
@@ -5187,7 +5251,7 @@ class Make
         $this->dom->addChild(
             $parent,
             "vIPIDevol",
-            $std->vIPIDevol,
+            number_format($std->vIPIDevol, 2, '.', ''),
             true,
             "[item $std->item] Valor do IPI devolvido"
         );
@@ -5199,7 +5263,8 @@ class Make
     /**
      * Grupo Totais referentes ao ICMS W02 pai W01
      * tag NFe/infNFe/total/ICMSTot
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagICMSTot(stdClass $std)
@@ -5426,7 +5491,8 @@ class Make
     /**
      * Grupo Totais referentes ao ISSQN W17 pai W01
      * tag NFe/infNFe/total/ISSQNTot (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagISSQNTot(stdClass $std)
@@ -5452,35 +5518,35 @@ class Make
         $this->dom->addChild(
             $ISSQNTot,
             "vServ",
-            $std->vServ,
+            ((float) $std->vServ == 0 ? '' : number_format($std->vServ, 2, '.', '')),
             false,
             "Valor total dos Serviços sob não incidência ou não tributados pelo ICMS"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vBC",
-            $std->vBC,
+            ((float) $std->vBC == 0 ? '' : number_format($std->vBC, 2, '.', '')),
             false,
             "Valor total Base de Cálculo do ISS"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vISS",
-            $std->vISS,
+            ((float) $std->vISS == 0 ? '' : number_format($std->vISS, 2, '.', '')),
             false,
             "Valor total do ISS"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vPIS",
-            $std->vPIS,
+            ((float) $std->vPIS == 0 ? '' : number_format($std->vPIS, 2, '.', '')),
             false,
             "Valor total do PIS sobre serviços"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vCOFINS",
-            $std->vCOFINS,
+            ((float) $std->vCOFINS == 0 ? '' : number_format($std->vCOFINS, 2, '.', '')),
             false,
             "Valor total da COFINS sobre serviços"
         );
@@ -5494,35 +5560,35 @@ class Make
         $this->dom->addChild(
             $ISSQNTot,
             "vDeducao",
-            $std->vDeducao,
+            ((float) $std->vDeducao == 0 ? '' : number_format($std->vDeducao, 2, '.', '')),
             false,
             "Valor total dedução para redução da Base de Cálculo"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vOutro",
-            $std->vOutro,
+            ((float) $std->vOutro == 0 ? '' : number_format($std->vOutro, 2, '.', '')),
             false,
             "Valor total outras retenções"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vDescIncond",
-            $std->vDescIncond,
+            ((float) $std->vDescIncond == 0 ? '' : number_format($std->vDescIncond, 2, '.', '')),
             false,
             "Valor total desconto incondicionado"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vDescCond",
-            $std->vDescCond,
+            ((float) $std->vDescCond == 0 ? '' : number_format($std->vDescCond, 2, '.', '')),
             false,
             "Valor total desconto condicionado"
         );
         $this->dom->addChild(
             $ISSQNTot,
             "vISSRet",
-            $std->vISSRet,
+            ((float) $std->vISSRet == 0 ? '' : number_format($std->vISSRet, 2, '.', '')),
             false,
             "Valor total retenção ISS"
         );
@@ -5540,7 +5606,8 @@ class Make
     /**
      * Grupo Retenções de Tributos W23 pai W01
      * tag NFe/infNFe/total/reTrib (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagretTrib(stdClass $std)
@@ -5560,49 +5627,49 @@ class Make
         $this->dom->addChild(
             $retTrib,
             "vRetPIS",
-            $std->vRetPIS,
+            ((float) $std->vRetPIS == 0 ? '' : number_format($std->vRetPIS, 2, '.', '')),
             false,
             "Valor Retido de PIS"
         );
         $this->dom->addChild(
             $retTrib,
             "vRetCOFINS",
-            $std->vRetCOFINS,
+            ((float) $std->vRetCOFINS == 0 ? '' : number_format($std->vRetCOFINS, 2, '.', '')),
             false,
             "Valor Retido de COFINS"
         );
         $this->dom->addChild(
             $retTrib,
             "vRetCSLL",
-            $std->vRetCSLL,
+            ((float) $std->vRetCSLL == 0 ? '' : number_format($std->vRetCSLL, 2, '.', '')),
             false,
             "Valor Retido de CSLL"
         );
         $this->dom->addChild(
             $retTrib,
             "vBCIRRF",
-            $std->vBCIRRF,
+            ((float) $std->vBCIRRF == 0 ? '' : number_format($std->vBCIRRF, 2, '.', '')),
             false,
             "Base de Cálculo do IRRF"
         );
         $this->dom->addChild(
             $retTrib,
             "vIRRF",
-            $std->vIRRF,
+            ((float) $std->vIRRF == 0 ? '' : number_format($std->vIRRF, 2, '.', '')),
             false,
             "Valor Retido do IRRF"
         );
         $this->dom->addChild(
             $retTrib,
             "vBCRetPrev",
-            $std->vBCRetPrev,
+            ((float) $std->vBCRetPrev == 0 ? '' : number_format($std->vBCRetPrev, 2, '.', '')),
             false,
             "Base de Cálculo da Retenção da Previdência Social"
         );
         $this->dom->addChild(
             $retTrib,
             "vRetPrev",
-            $std->vRetPrev,
+            ((float) $std->vRetPrev == 0 ? '' : number_format($std->vRetPrev, 2, '.', '')),
             false,
             "Valor da Retenção da Previdência Social"
         );
@@ -5613,7 +5680,8 @@ class Make
     /**
      * Grupo Informações do Transporte X01 pai A01
      * tag NFe/infNFe/transp (obrigatório)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagtransp(stdClass $std)
@@ -5632,7 +5700,8 @@ class Make
     /**
      * Grupo Transportador X03 pai X01
      * tag NFe/infNFe/transp/tranporta (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagtransporta(stdClass $std)
@@ -5710,7 +5779,8 @@ class Make
     /**
      * Grupo Retenção ICMS transporte X11 pai X01
      * tag NFe/infNFe/transp/retTransp (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagretTransp(stdClass $std)
@@ -5729,7 +5799,7 @@ class Make
         $this->dom->addChild(
             $retTransp,
             "vServ",
-            $std->vServ,
+            number_format($std->vServ, 2, '.', ''),
             true,
             "Valor do Serviço"
         );
@@ -5743,14 +5813,14 @@ class Make
         $this->dom->addChild(
             $retTransp,
             "pICMSRet",
-            $std->pICMSRet,
+            number_format($std->pICMSRet, 4, '.', ''),
             true,
             "Alíquota da Retenção"
         );
         $this->dom->addChild(
             $retTransp,
             "vICMSRet",
-            $std->vICMSRet,
+            number_format($std->vICMSRet, 2, '.', ''),
             true,
             "Valor do ICMS Retido"
         );
@@ -5779,7 +5849,8 @@ class Make
     /**
      * Grupo Veículo Transporte X18 pai X17.1
      * tag NFe/infNFe/transp/veicTransp (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagveicTransp(stdClass $std)
@@ -5824,7 +5895,8 @@ class Make
     /**
      * Grupo Reboque X22 pai X17.1
      * tag NFe/infNFe/transp/reboque (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagreboque(stdClass $std)
@@ -5885,6 +5957,7 @@ class Make
     /**
      * Grupo Volumes X26 pai X01
      * tag NFe/infNFe/transp/vol (opcional)
+     *
      * @param  stdClass $std
      * @return DOMElement
      */
@@ -5905,7 +5978,7 @@ class Make
         $this->dom->addChild(
             $vol,
             "qVol",
-            $std->qVol,
+            number_format($std->qVol, 0, '.', ''),
             false,
             "Quantidade de volumes transportados"
         );
@@ -5933,13 +6006,14 @@ class Make
         $this->dom->addChild(
             $vol,
             "pesoL",
-            $std->pesoL,
+            number_format($std->pesoL, 3, '.', ''),
             false,
             "Peso Líquido (em kg) dos volumes transportados"
         );
         $this->dom->addChild(
             $vol,
             "pesoB",
+            number_format($std->pesoB, 3, '.', ''),
             $std->pesoB,
             false,
             "Peso Bruto (em kg) dos volumes transportados"
@@ -5951,7 +6025,8 @@ class Make
     /**
      * Grupo Lacres X33 pai X26
      * tag NFe/infNFe/transp/vol/lacres (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function taglacres(stdClass $std)
@@ -5983,14 +6058,15 @@ class Make
      * NOTA: Ajustado para NT2016_002_v1.30
      * tag NFe/infNFe/pag (obrigatorio na NT2016_002_v1.30)
      * Obrigatório para 55 e 65
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagpag($std)
     {
         $pag = $this->dom->createElement("pag");
         //incluso no layout 4.00
-        $vTroco = !empty($std->vTroco) ? $std->vTroco : null;
+        $vTroco = !empty($std->vTroco) ? number_format($std->vTroco, 2, '.', '') : null;
         $this->dom->addChild(
             $pag,
             "vTroco",
@@ -6005,7 +6081,8 @@ class Make
      * Grupo de Formas de Pagamento YA01a pai YA01
      * NOTA: Ajuste nt_2016_002_v1.30
      * tag NFe/infNFe/pag/detPag
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagdetPag($std)
@@ -6031,38 +6108,38 @@ class Make
             $this->dom->addChild(
                 $this->aPag[$n-1],
                 "vPag",
-                $std->vPag,
+                number_format($std->vPag, 2, '.', ''),
                 true,
                 "Valor do Pagamento"
             );
-            if ($std->tBand != '') {
+            if (!empty($std->tpIntegra)) {
                 $card = $this->dom->createElement("card");
                 $this->dom->addChild(
                     $card,
                     "tpIntegra",
                     $std->tpIntegra,
-                    false,
+                    true,
                     "Tipo de Integração para pagamento"
                 );
                 $this->dom->addChild(
                     $card,
                     "CNPJ",
-                    $std->CNPJ,
-                    true,
+                    !empty($std->CNPJ) ? $std->CNPJ : null,
+                    false,
                     "CNPJ da Credenciadora de cartão de crédito e/ou débito"
                 );
                 $this->dom->addChild(
                     $card,
                     "tBand",
-                    $std->tBand,
-                    true,
+                    !empty($std->tBand) ? $std->tBand : null,
+                    false,
                     "Bandeira da operadora de cartão de crédito e/ou débito"
                 );
                 $this->dom->addChild(
                     $card,
                     "cAut",
-                    $std->cAut,
-                    true,
+                    !empty($std->cAut) ? $std->cAut : null,
+                    false,
                     "Número de autorização da operação cartão de crédito e/ou débito"
                 );
                 $this->dom->appChild($this->aPag[$n-1], $card, "Inclusão do node Card");
@@ -6081,7 +6158,7 @@ class Make
             $this->dom->addChild(
                 $detPag,
                 "vPag",
-                $std->vPag,
+                number_format($std->vPag, 2, '.', ''),
                 true,
                 "Valor do Pagamento"
             );
@@ -6131,7 +6208,8 @@ class Make
     /**
      * Grupo Fatura Y02 pai Y01
      * tag NFe/infNFe/cobr/fat (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagfat(stdClass $std)
@@ -6156,21 +6234,21 @@ class Make
         $this->dom->addChild(
             $fat,
             "vOrig",
-            $std->vOrig,
+            ((float) $std->vOrig == 0 ? '' : number_format($std->vOrig, 2, '.', '')),
             false,
             "Valor Original da Fatura"
         );
         $this->dom->addChild(
             $fat,
             "vDesc",
-            $std->vDesc,
+            ((float) $std->vDesc == 0 ? '' : number_format($std->vDesc, 2, '.', '')),
             false,
             "Valor do desconto"
         );
         $this->dom->addChild(
             $fat,
             "vLiq",
-            $std->vLiq,
+            ((float) $std->vLiq == 0 ? '' : number_format($std->vLiq, 2, '.', '')),
             false,
             "Valor Líquido da Fatura"
         );
@@ -6182,7 +6260,8 @@ class Make
      * Grupo Duplicata Y07 pai Y02
      * tag NFe/infNFe/cobr/fat/dup (opcional)
      * É necessário criar a tag fat antes de criar as duplicatas
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagdup(stdClass $std)
@@ -6213,8 +6292,8 @@ class Make
         $this->dom->addChild(
             $dup,
             "vDup",
-            $std->vDup,
-            true,
+            ((float) $std->vDup == 0 ? '' : number_format($std->vDup, 2, '.', '')),
+            false,
             "Valor da duplicata"
         );
         $this->dom->appChild($this->cobr, $dup, 'Inclui duplicata na tag cobr');
@@ -6224,7 +6303,8 @@ class Make
     /**
      * Grupo de Informações Adicionais Z01 pai A01
      * tag NFe/infNFe/infAdic (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function taginfAdic(stdClass $std)
@@ -6254,7 +6334,8 @@ class Make
      * Grupo Campo de uso livre do contribuinte Z04 pai Z01
      * tag NFe/infNFe/infAdic/obsCont (opcional)
      * O método taginfAdic deve ter sido carregado antes
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagobsCont(stdClass $std)
@@ -6280,7 +6361,8 @@ class Make
      * Grupo Campo de uso livre do Fisco Z07 pai Z01
      * tag NFe/infNFe/infAdic/obsFisco (opcional)
      * O método taginfAdic deve ter sido carregado antes
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagobsFisco(stdClass $std)
@@ -6306,7 +6388,8 @@ class Make
      * Grupo Processo referenciado Z10 pai Z01 (NT2012.003)
      * tag NFe/infNFe/procRef (opcional)
      * O método taginfAdic deve ter sido carregado antes
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagprocRef($std)
@@ -6337,7 +6420,8 @@ class Make
     /**
      * Grupo Exportação ZA01 pai A01
      * tag NFe/infNFe/exporta (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagexporta(stdClass $std)
@@ -6373,7 +6457,8 @@ class Make
     /**
      * Grupo Compra ZB01 pai A01
      * tag NFe/infNFe/compra (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagcompra(stdClass $std)
@@ -6409,7 +6494,8 @@ class Make
     /**
      * Grupo Cana ZC01 pai A01
      * tag NFe/infNFe/cana (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagcana(stdClass $std)
@@ -6444,42 +6530,42 @@ class Make
         $this->dom->addChild(
             $this->cana,
             "qTotMes",
-            $std->qTotMes,
+            number_format($std->qTotMes, 10, '.', ''),
             true,
             "Quantidade Total do Mês"
         );
         $this->dom->addChild(
             $this->cana,
             "qTotAnt",
-            $std->qTotAnt,
+            number_format($std->qTotAnt, 10, '.', ''),
             true,
             "Quantidade Total Anterior"
         );
         $this->dom->addChild(
             $this->cana,
             "qTotGer",
-            $std->qTotGer,
+            number_format($std->qTotGer, 10, '.', ''),
             true,
             "Quantidade Total Geral"
         );
         $this->dom->addChild(
             $this->cana,
             "vFor",
-            $std->vFor,
+            number_format($std->vFor, 2, '.', ''),
             true,
             "Valor dos Fornecimentos"
         );
         $this->dom->addChild(
             $this->cana,
             "vTotDed",
-            $std->vTotDed,
+            number_format($std->vTotDed, 2, '.', ''),
             true,
             "Valor Total da Dedução"
         );
         $this->dom->addChild(
             $this->cana,
             "vLiqFor",
-            $std->vLiqFor,
+            number_format($std->vLiqFor, 2, '.', ''),
             true,
             "Valor Líquido dos Fornecimentos"
         );
@@ -6489,7 +6575,8 @@ class Make
     /**
      * Grupo Fornecimento diário de cana ZC04 pai ZC01
      * tag NFe/infNFe/cana/forDia
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagforDia(stdClass $std)
@@ -6499,7 +6586,7 @@ class Make
         $this->dom->addChild(
             $forDia,
             "qtde",
-            $std->qtde,
+            number_format($std->qtde, 10, '.', ''),
             true,
             "Quantidade"
         );
@@ -6511,7 +6598,8 @@ class Make
     /**
      * Grupo Deduções – Taxas e Contribuições ZC10 pai ZC01
      * tag NFe/infNFe/cana/deduc (opcional)
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function tagdeduc(stdClass $std)
@@ -6530,7 +6618,7 @@ class Make
         $this->dom->addChild(
             $deduc,
             "vDed",
-            $std->vDed,
+            number_format($std->vDed, 2, '.', ''),
             true,
             "Valor da Dedução"
         );
@@ -6541,7 +6629,8 @@ class Make
 
     /**
      * Informações suplementares da Nota Fiscal
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     public function taginfNFeSupl(stdClass $std)
@@ -6597,6 +6686,7 @@ class Make
     /**
      * Insere dentro dentro das tags imposto o ICMS IPI II PIS COFINS ISSQN
      * tag NFe/infNFe/det[]/imposto
+     *
      * @return void
      */
     protected function buildImp()
@@ -6637,7 +6727,8 @@ class Make
      * Grupo COFINS tributado pela alíquota S02 pai S01
      * tag det/imposto/COFINS/COFINSAliq (opcional)
      * Função chamada pelo método [ tagCOFINS ]
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     protected function buildCOFINSAliq($std)
@@ -6653,21 +6744,21 @@ class Make
         $this->dom->addChild(
             $confinsAliq,
             'vBC',
-            $std->vBC,
+            number_format($std->vBC, 2, '.', ''),
             true,
             "Valor da Base de Cálculo da COFINS"
         );
         $this->dom->addChild(
             $confinsAliq,
             'pCOFINS',
-            $std->pCOFINS,
+            number_format($std->pCOFINS, 4, '.', ''),
             true,
             "Alíquota da COFINS (em percentual)"
         );
         $this->dom->addChild(
             $confinsAliq,
             'vCOFINS',
-            $std->vCOFINS,
+            number_format($std->vCOFINS, 2, '.', ''),
             true,
             "Valor da COFINS"
         );
@@ -6678,7 +6769,8 @@ class Make
      * Grupo COFINS não tributado S04 pai S01
      * tag NFe/infNFe/det[]/imposto/COFINS/COFINSNT (opcional)
      * Função chamada pelo método [ tagCOFINS ]
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     protected function buildCOFINSNT(stdClass $std)
@@ -6698,7 +6790,8 @@ class Make
      * Grupo COFINS Outras Operações S05 pai S01
      * tag NFe/infNFe/det[]/imposto/COFINS/COFINSoutr (opcional)
      * Função chamada pelo método [ tagCOFINS ]
-     * @param stdClass $std
+     *
+     * @param  stdClass $std
      * @return DOMElement
      */
     protected function buildCOFINSoutr(stdClass $std)
@@ -6714,35 +6807,35 @@ class Make
         $this->dom->addChild(
             $confinsoutr,
             "vBC",
-            $std->vBC,
+            number_format($std->vBC, 2, '.', ''),
             ($std->vBC !== null) ? true : false,
             "Valor da Base de Cálculo da COFINS"
         );
         $this->dom->addChild(
             $confinsoutr,
             "pCOFINS",
-            $std->pCOFINS,
+            number_format($std->pCOFINS, 4, '.', ''),
             ($std->pCOFINS !== null) ? true : false,
             "Alíquota da COFINS (em percentual)"
         );
         $this->dom->addChild(
             $confinsoutr,
             "qBCProd",
-            $std->qBCProd,
+            ((float) $std->qBCProd == 0 ? '' : number_format($std->qBCProd, 4, '.', '')),
             ($std->qBCProd !== null) ? true : false,
             "Quantidade Vendida"
         );
         $this->dom->addChild(
             $confinsoutr,
             "vAliqProd",
-            $std->vAliqProd,
+            ((float) $std->vAliqProd == 0 ? '' : number_format($std->vAliqProd, 4, '.', '')),
             ($std->vAliqProd !== null) ? true : false,
             "Alíquota da COFINS (em reais)"
         );
         $this->dom->addChild(
             $confinsoutr,
             "vCOFINS",
-            $std->vCOFINS,
+            number_format($std->vCOFINS, 2, '.', ''),
             true,
             "Valor da COFINS"
         );
@@ -6752,6 +6845,7 @@ class Make
     /**
      * Insere dentro da tag det os produtos
      * tag NFe/infNFe/det[]
+     *
      * @return array|string
      */
     protected function buildDet()
@@ -6776,7 +6870,9 @@ class Make
         //insere CEST
         foreach ($this->aCest as $nItem => $cest) {
             $prod = $this->aProd[$nItem];
-            /** @var \DOMElement $child */
+            /**
+             * @var \DOMElement $child
+             */
             foreach ($cest as $child) {
                 $node = $prod->getElementsByTagName("cBenef")->item(0);
                 if (empty($node)) {
@@ -6977,6 +7073,7 @@ class Make
      * tag NFe/infNFe/infAdic (opcional)
      * Função chamada pelos metodos
      * [taginfAdic] [tagobsCont] [tagobsFisco] [tagprocRef]
+     *
      * @return DOMElement
      */
     protected function buildInfAdic()
@@ -6992,7 +7089,8 @@ class Make
      * já contidos na NFE.
      * Isso é útil no caso da chave informada estar errada
      * se a chave estiver errada a mesma é substituida
-     * @param Dom $dom
+     *
+     * @param  Dom $dom
      * @return void
      */
     protected function checkNFeKey(Dom $dom)
@@ -7035,8 +7133,9 @@ class Make
 
     /**
      * Includes missing or unsupported properties in stdClass
-     * @param stdClass $std
-     * @param array $possible
+     *
+     * @param  stdClass $std
+     * @param  array    $possible
      * @return stdClass
      */
     protected function equilizeParameters(stdClass $std, $possible)
