@@ -454,7 +454,6 @@ class Make
             'cUF',
             'cNF',
             'natOp',
-            'indPag',
             'mod',
             'serie',
             'nNF',
@@ -502,16 +501,6 @@ class Make
             true,
             $identificador . "Descrição da Natureza da Operação"
         );
-        //removido desta posição no layout 4.00
-        if ($this->version == '3.10') {
-            $this->dom->addChild(
-                $ide,
-                "indPag",
-                $std->indPag,
-                true,
-                $identificador . "Indicador da forma de pagamento"
-            );
-        }
         $this->dom->addChild(
             $ide,
             "mod",
