@@ -9,7 +9,7 @@ Todas as atualizações a partir de 30/05/2016 devem observar os princípios [Ma
 ## Notas da versão:
 Esta release quebra a compatibilidade com as versões anteriores e contêm várias mudanças em relação a forma de configuração e uso.
 ### Added
-- Nothing
+- NT 2026.002 (DANFE Simplificado Tipo 2): tpImp=6 no leiaute (PL_010_V1.30), cStat 120 (autorizado com alerta) em storage/cstat.json e na lista de protocolo de Complements.
 
 ### Deprecated
 - Nothing

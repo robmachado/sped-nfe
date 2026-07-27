@@ -74,6 +74,11 @@
         "status": "0",
         "correct": "Conting\u00eancia indispon\u00edvel"
     }, {
+        "cod": "120",
+        "msg": "Autorizado o uso da NF-e, com alerta",
+        "status": "1",
+        "correct": ""
+    }, {
         "cod": "124",
         "msg": "EPEC Autorizado",
         "status": "1",
