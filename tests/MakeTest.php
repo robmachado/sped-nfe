@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NFePHP\NFe\Tests;
 
-use NFePHP\NFe\Make;
+use NFePHP\NFe\MakeOld as Make;
 use PHPUnit\Framework\TestCase;
 
 class MakeTest extends TestCase
@@ -431,6 +431,36 @@ class MakeTest extends TestCase
         $this->assertEquals($std->infAdProd, $tag->nodeValue);
     }
 
+    public function test_tagCreditoPresumidoProd(): void
+    {
+        $std = new \stdClass();
+        $std->item = 1;
+        $std->cCredPresumido = '2222211234';
+        $std->pCredPresumido = '4.0000';
+        $std->vCredPresumido = '4.00';
+
+        $tag = $this->make->tagCreditoPresumidoProd($std);
+
+        $this->assertEquals('gCred', $tag->nodeName);
+        $this->assertEquals($std->cCredPresumido, $tag->getElementsByTagName('cCredPresumido')->item(0)->nodeValue);
+        $this->assertEquals($std->pCredPresumido, $tag->getElementsByTagName('pCredPresumido')->item(0)->nodeValue);
+        $this->assertEquals($std->vCredPresumido, $tag->getElementsByTagName('vCredPresumido')->item(0)->nodeValue);
+    }
+
+    public function test_tagprodObsCont(): void
+    {
+        $std = new \stdClass();
+        $std->item = 1;
+        $std->xCampo = 'abc';
+        $std->xTexto = '123';
+
+        $tag = $this->make->tagprodObsCont($std);
+
+        $this->assertEquals('obsItem', $tag->nodeName);
+        $this->assertEquals($std->xCampo, $tag->getElementsByTagName('obsCont')->item(0)->getAttribute('xCampo'));
+        $this->assertEquals($std->xTexto, $tag->getElementsByTagName('xTexto')->item(0)->nodeValue);
+    }
+
     public function test_tagprodObsFisco(): void
     {
         $std = new \stdClass();
@@ -438,7 +468,7 @@ class MakeTest extends TestCase
         $std->xCampo = 'abc';
         $std->xTexto = '123';
 
-        $tag = $this->make->tagobsFisco($std);
+        $tag = $this->make->tagprodObsFisco($std);
 
         $this->assertEquals('obsItem', $tag->nodeName);
         $this->assertEquals($std->xCampo, $tag->getElementsByTagName('obsFisco')->item(0)->getAttribute('xCampo'));
@@ -939,6 +969,22 @@ class MakeTest extends TestCase
         $this->validarCriacaoTag2($std, $element, 'detExport');
     }
 
+    public function test_tagdetExportInd(): void
+    {
+        $std = new \stdClass();
+        $std->item = 1;
+        $std->nDraw = 123;
+        $this->make->tagdetExport($std);
+
+        $std = new \stdClass();
+        $std->item = 1;
+        $std->nRE = 123;
+        $std->chNFe = '12345678901234567890123456789012345678901234';
+        $std->qExport = 45.1;
+
+        $element = $this->make->tagdetExportInd($std);
+        $this->validarCriacaoTag2($std, $element, 'exportInd');
+    }
 
     public function test_tagRastro(): void
     {
@@ -987,8 +1033,8 @@ class MakeTest extends TestCase
 
     public function test_tagISSQN(): void
     {
-        //$this->make->tagide(new \stdClass());
-        //$this->make->tagemit(new \stdClass());
+        $this->make->tagide(new \stdClass());
+        $this->make->tagemit(new \stdClass());
 
         $std = new \stdClass();
         $std->item = 1;
