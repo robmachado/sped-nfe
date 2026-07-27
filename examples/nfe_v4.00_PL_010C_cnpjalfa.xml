@@ -30,7 +30,7 @@
       <indPres>5</indPres>
       <!--Optional:-->
       <indIntermed>1</indIntermed>
-      <procEmi>0</procEmi>
+      <procEmi>3</procEmi>
       <verProc>string</verProc>
       <dhCont>string</dhCont>
       <xJust>stringstringstringstring</xJust>
@@ -67,9 +67,9 @@
       </NFref>
       <!--Optional:-->
       <gCompraGov>
-        <tpEnteGov>2</tpEnteGov>
+        <tpEnteGov>6</tpEnteGov>
         <pRedutor>string</pRedutor>
-        <tpOperGov>1</tpOperGov>
+        <tpOperGov>2</tpOperGov>
       </gCompraGov>
       <!--Optional:-->
       <gPagAntecipado>

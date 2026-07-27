@@ -182,15 +182,14 @@ trait TraitTagDetIBSCBS
             if (isset($std->gIBSUF_vDevTrib)) {
                 //Grupo de Informações da devolução de tributos IBSUF
                 $gDevTrib = $this->dom->createElement("gDevTrib");
-                //@todo NT 2025.002 v1.50 aguardar liberar no xsd
-                /*
+                //NT 2025.002 v1.50
                 $this->dom->addChild(
                     $gDevTrib,
                     "pDevTrib",
                     $this->conditionalNumberFormatting($std->gIBSUF_pDevTrib),
                     false,
                     "$identificador Percentual de devolução do IBS da UF (pDevTrib)"
-                );*/
+                );
                 $this->dom->addChild(
                     $gDevTrib,
                     "vDevTrib",
@@ -260,15 +259,14 @@ trait TraitTagDetIBSCBS
             if (isset($std->gIBSMun_vDevTrib)) {
                 //Grupo de Informações da devolução de tributos
                 $gDevTrib = $this->dom->createElement("gDevTrib");
-                //@todo NT 2025.002 v1.50 aguardar liberar no xsd
-                /*
+                //NT 2025.002 v1.50
                 $this->dom->addChild(
                     $gDevTrib,
                     "pDevTrib",
                     $this->conditionalNumberFormatting($std->gIBSMun_pDevTrib),
                     false,
                     "$identificador Percentual de devolução do IBS do Município (pDevTrib)"
-                );*/
+                );
                 $this->dom->addChild(
                     $gDevTrib,
                     "vDevTrib",
@@ -345,15 +343,14 @@ trait TraitTagDetIBSCBS
             if (isset($std->gCBS_vDevTrib)) {
                 //Grupo de Informações da devolução de tributos
                 $gDevTrib = $this->dom->createElement("gDevTrib");
-                //@todo NT 2025.002 v1.50 aguardar liberar no xsd
-                /*
+                //NT 2025.002 v1.50
                 $this->dom->addChild(
                     $gDevTrib,
                     "pDevTrib",
                     $this->conditionalNumberFormatting($std->gCBS_pDevTrib),
                     false,
                     "$identificador Percentual de devolução da CBS (pDevTrib)"
-                );*/
+                );
                 $this->dom->addChild(
                     $gDevTrib,
                     "vDevTrib",
