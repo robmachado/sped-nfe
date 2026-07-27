@@ -745,7 +745,7 @@ final class Make
                 $this->addTag($imposto, $this->aPIS[$item], 'Falta a tag det/imposto!');
             }
             //PISST => imposto
-            if (!empty($this->aPISST[$item]) && empty($this->aPIS[$item])) {
+            if (!empty($this->aPISST[$item])) {
                 //ou o PIS normal ou PISST não pode haver os dois no mesmo item
                 $this->addTag($imposto, $this->aPISST[$item], 'Falta a tag det/imposto!');
             }

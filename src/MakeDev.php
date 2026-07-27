@@ -745,7 +745,7 @@ final class MakeDev
                 $this->addTag($imposto, $this->aPIS[$item], 'Falta a tag det/imposto!');
             }
             //PISST => imposto
-            if (!empty($this->aPISST[$item]) && empty($this->aPIS[$item])) {
+            if (!empty($this->aPISST[$item])) {
                 //ou o PIS normal ou PISST não pode haver os dois no mesmo item
                 $this->addTag($imposto, $this->aPISST[$item], 'Falta a tag det/imposto!');
             }
@@ -754,7 +754,7 @@ final class MakeDev
                 $this->addTag($imposto, $this->aCOFINS[$item], 'Falta a tag det/imposto!');
             }
             //COFINSST => imposto
-            if (!empty($this->aCOFINSST[$item]) && empty($this->aCOFINS[$item])) {
+            if (!empty($this->aCOFINSST[$item])) {
                 //ou o COFINS normal ou CONFINSST não pode haver os dois no mesmo item
                 $this->addTag($imposto, $this->aCOFINSST[$item], 'Falta a tag det/imposto!');
             }
