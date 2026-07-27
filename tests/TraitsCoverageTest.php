@@ -275,7 +275,7 @@ class TraitsCoverageTest extends TestCase
         $std->cClassTribIS = '001';
         $std->vBCIS = 100.00;
         $std->pIS = 5.0000;
-        $std->pISEspec = 1.5000;
+        $std->adRemIS = 1.5000;
         $std->vIS = 5.00;
         $is = $this->make->tagIS($std);
 
@@ -285,7 +285,7 @@ class TraitsCoverageTest extends TestCase
         $this->assertEquals('001', $is->getElementsByTagName('cClassTribIS')->item(0)->nodeValue);
         $this->assertEquals('100.00', $is->getElementsByTagName('vBCIS')->item(0)->nodeValue);
         $this->assertEquals('5.0000', $is->getElementsByTagName('pIS')->item(0)->nodeValue);
-        $this->assertEquals('1.5000', $is->getElementsByTagName('pISEspec')->item(0)->nodeValue);
+        $this->assertEquals('1.5000', $is->getElementsByTagName('adRemIS')->item(0)->nodeValue);
         $this->assertEquals('5.00', $is->getElementsByTagName('vIS')->item(0)->nodeValue);
     }
 

@@ -59,6 +59,7 @@ trait TraitTagIde
             'indFinal',
             'indPres',
             'indIntermed',
+            'cIndOp',
             'procEmi',
             'verProc',
             'dhCont',
@@ -307,6 +308,14 @@ trait TraitTagIde
             $std->indIntermed,
             false,
             $identificador . "Indicador de intermediador/marketplace"
+        );
+        //NT 2025_002_v1.50
+        $this->dom->addChild(
+            $ide,
+            "cIndOp",
+            $std->cIndOp,
+            false,
+            $identificador . "Código Indicador do Local da Operação"
         );
         $this->dom->addChild(
             $ide,

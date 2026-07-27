@@ -31,7 +31,7 @@ trait TraitTagDetIS
             'cClassTribIS',
             'vBCIS',
             'pIS',
-            'pISEspec', //irá mudar para adRemIS
+            'adRemIS', //irá mudar para adRemIS
             'uTrib',
             'qTrib',
             'vIS'
@@ -71,13 +71,13 @@ trait TraitTagDetIS
                 true,
                 "$identificador Alíquota do Imposto Seletivo"
             );
-            //@todo NT 2005.002 v1.50 o campo pISEspec irá mudar para adRemIS
+            //NT 2005.002 v1.50 o campo pISEspec irá mudar para adRemIS
             $this->dom->addChild(
                 $is,
-                "pISEspec",
-                $this->conditionalNumberFormatting($std->pISEspec ?? null, 4),
+                "adRemIS",
+                $this->conditionalNumberFormatting($std->adRemIS ?? null, 4),
                 false,
-                "$identificador Alíquota específica por unidade de medida apropriada"
+                "$identificador Alíquota específica por unidade de medida apropriada (adRemIS)"
             );
         }
         if (!empty($std->uTrib) && !empty($std->qTrib)) {
