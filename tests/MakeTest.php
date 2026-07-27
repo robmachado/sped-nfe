@@ -438,7 +438,7 @@ class MakeTest extends TestCase
         $std->xCampo = 'abc';
         $std->xTexto = '123';
 
-        $tag = $this->make->tagprodObsFisco($std);
+        $tag = $this->make->tagobsFisco($std);
 
         $this->assertEquals('obsItem', $tag->nodeName);
         $this->assertEquals($std->xCampo, $tag->getElementsByTagName('obsFisco')->item(0)->getAttribute('xCampo'));

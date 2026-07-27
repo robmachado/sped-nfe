@@ -147,7 +147,7 @@ trait TraitTagDet
             true,
             "$identificador Descrição do produto ou serviço"
         );
-        if (!in_array(strlen($std->NCM), [2,8])) {
+        if (!in_array(strlen($std->NCM ?? ''), [2,8])) {
             $this->errors[] = "Item: $std->item NCM $std->NCM deve ter 2 ou 8 dígitos";
         }
         $this->dom->addChild(
