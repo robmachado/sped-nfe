@@ -90,7 +90,7 @@ trait TraitEventsRTC
         $verAplic = $this->resolveVerAplic($verAplic);
         $tpEvento = '211110';
         $tagAdic = "<cOrgaoAutor>{$this->cUF}</cOrgaoAutor>"
-            . "<tpAutor>{$std->tpAutor}</tpAutor>" //2=Empresa destinatária     @todo quem realmente emite esse evento ??
+            . "<tpAutor>{$std->tpAutor}</tpAutor>"
             . "<verAplic>{$verAplic}</verAplic>";
         $gcred = '';
         foreach ($std->itens as $item) {
