@@ -90,35 +90,34 @@ trait TraitEventsRTC
         $verAplic = $this->resolveVerAplic($verAplic);
         $tpEvento = '211110';
         $tagAdic = "<cOrgaoAutor>{$this->cUF}</cOrgaoAutor>"
-            . "<tpAutor>2</tpAutor>" //2=Empresa destinatária     @todo quem realmente emite esse evento ??
+            . "<tpAutor>{$std->tpAutor}</tpAutor>"
             . "<verAplic>{$verAplic}</verAplic>";
         $gcred = '';
         foreach ($std->itens as $item) {
             $bc = number_format($item->vBC, 2, '.', '');
-            $gcred .= "<gCredPres nItem=\"{$item->item}\"><vBC>{$bc}</vBC>";
+            $gcred .= "<gCredPresOper nItem=\"{$item->item}\"><vBCCredPres>{$bc}</vBCCredPres>";
+            $gcred .= "<cCredPres>{$item->cCredPres}</cCredPres>";
             if (!empty($item->gIBS)) {
                 $g = $item->gIBS;
                 $pc = number_format($g->pCredPres, 4, '.', '');
                 $vc = number_format($g->vCredPres, 2, '.', '');
-                $gibs = "<gIBS>"
-                    . "<cCredPres>{$g->cCredPres}</cCredPres>"
+                $gibs = "<gIBSCredPres>"
                     . "<pCredPres>{$pc}</pCredPres>"
                     . "<vCredPres>{$vc}</vCredPres>"
-                    . "</gIBS>";
+                    . "</gIBSCredPres>";
                 $gcred .= $gibs;
             }
             if (!empty($item->gCBS)) {
                 $g = $item->gCBS;
                 $pc = number_format($g->pCredPres, 4, '.', '');
                 $vc = number_format($g->vCredPres, 2, '.', '');
-                $gcbs = "<gCBS>"
-                    . "<cCredPres>{$g->cCredPres}</cCredPres>"
+                $gcbs = "<gCBSCredPres>"
                     . "<pCredPres>{$pc}</pCredPres>"
                     . "<vCredPres>{$vc}</vCredPres>"
-                    . "</gCBS>";
+                    . "</gCBSCredPres>";
                 $gcred .= $gcbs;
             }
-            $gcred .= "</gCredPres>";
+            $gcred .= "</gCredPresOper>";
         }
         $tagAdic .= $gcred;
 
