@@ -1011,7 +1011,7 @@ try {
     ];
     //$mk->tagIS((object) $is);
 
-    //############################## TAG <det/imposto/IBCCBS> opcional ################################################
+    //############################## TAG <det/imposto/IBSCBS> opcional ################################################
     $ibs = [
         'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
         'CST' => '000', //OBRIGATÓRIO CST IBS/CBS 3 digitos
